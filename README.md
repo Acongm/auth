@@ -29,15 +29,11 @@ docs/oauth-setup.md    # Supabase / Vercel / 域名配置
 - Epic：[Platform v2 — auth](https://github.com/Acongm/auth/issues/16)
 - 迁移记录：[docs/issues-migration.md](./docs/issues-migration.md)
 
-## Vercel 部署
+## 部署
+
+API 就绪后见 [docs/deploy-checklist.md](./docs/deploy-checklist.md)。
 
 Root Directory 设为 `apps/auth`，详见 [docs/oauth-setup.md](./docs/oauth-setup.md)。
-
-所需 Secrets（GitHub Actions）：
-
-- `VERCEL_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
 
 ## 子应用接入
 

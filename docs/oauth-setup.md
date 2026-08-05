@@ -46,6 +46,10 @@ sequenceDiagram
 
 ## Vercel 部署
 
+**API 已部署后**，按 [docs/deploy-checklist.md](./docs/deploy-checklist.md) 部署本仓到 `auth.acongm.com`。
+
+简要步骤：Vercel 导入本仓库 → Root Directory = `apps/auth` → 配置 Supabase 环境变量 → 绑定域名。
+
 ### 项目设置
 
 | 项 | 值 |
