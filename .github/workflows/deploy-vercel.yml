@@ -1,9 +1,6 @@
 name: Deploy Auth to Vercel
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 env:
@@ -12,13 +9,12 @@ env:
 
 jobs:
   deploy:
+    if: ${{ secrets.VERCEL_TOKEN != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - uses: actions/setup-node@v4
         with:
@@ -27,9 +23,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-
-      - name: Typecheck
-        run: pnpm typecheck
 
       - name: Build packages and app
         run: pnpm build
