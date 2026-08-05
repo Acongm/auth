@@ -1,0 +1,42 @@
+{
+  "name": "@acongm/auth-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./hooks": {
+      "types": "./dist/hooks.d.ts",
+      "import": "./dist/hooks.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "react": "^19.0.0"
+  },
+  "dependencies": {
+    "@acongm/config": "workspace:*",
+    "@supabase/ssr": "^0.6.1"
+  },
+  "devDependencies": {
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.1",
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "react": "^19.0.0",
+    "typescript": "^5.8.2"
+  }
+}

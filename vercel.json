@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm --filter @acongm/config build && pnpm --filter @acongm/auth-client build && pnpm --filter @acongm/auth-app build",
+  "installCommand": "pnpm install",
+  "framework": null
+}
