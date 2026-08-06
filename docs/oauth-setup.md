@@ -34,7 +34,9 @@ sequenceDiagram
 
 ## Supabase 控制台
 
-1. **Authentication → Providers → GitHub**：启用并填入 GitHub OAuth App
+1. **Authentication → Providers → GitHub**：启用并填入 GitHub OAuth App  
+   - 若出现 `Unsupported provider: provider is not enabled`，说明 GitHub Provider 仍为关闭状态（与代码无关）
+   - 可用脚本（需 token + GitHub OAuth 凭证）：`scripts/configure-supabase-github-auth.sh`（仓库根 `acongm/scripts`）
 2. **GitHub OAuth App Callback**：填 Supabase `https://<project>.supabase.co/auth/v1/callback`
 3. **Authentication → URL Configuration**
    - Site URL: `https://auth.acongm.com`

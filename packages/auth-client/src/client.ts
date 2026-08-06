@@ -48,7 +48,13 @@ export async function signInWithGitHub(
   });
 
   if (error) {
-    throw error;
+    const message = error.message || "GitHub OAuth failed";
+    if (/provider is not enabled/i.test(message)) {
+      throw new Error(
+        "Unsupported provider: provider is not enabled. Enable GitHub in Supabase Authentication → Providers.",
+      );
+    }
+    throw new Error(message);
   }
 }
 

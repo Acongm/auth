@@ -4,6 +4,34 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AuthShell, GitHubSignInButton } from "@/components/auth-shell";
 
+function formatLoginError(cause: unknown): string {
+  if (cause && typeof cause === "object") {
+    const record = cause as {
+      message?: string;
+      msg?: string;
+      error_code?: string;
+      code?: string | number;
+    };
+    const message = record.message || record.msg || "";
+    const code = String(record.error_code || record.code || "");
+    if (
+      /provider is not enabled/i.test(message) ||
+      (/validation_failed/i.test(code) && /provider/i.test(message))
+    ) {
+      return "GitHub 登录未启用：请在 Supabase Dashboard → Authentication → Providers → GitHub 开启，并填写 GitHub OAuth App 的 Client ID / Secret。";
+    }
+    if (cause instanceof Error) {
+      if (/provider is not enabled/i.test(cause.message)) {
+        return "GitHub 登录未启用：请在 Supabase Dashboard → Authentication → Providers → GitHub 开启，并填写 GitHub OAuth App 的 Client ID / Secret。";
+      }
+      return cause.message;
+    }
+    if (message) return message;
+  }
+
+  return "登录失败，请重试";
+}
+
 export function LoginForm() {
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("return_to");
@@ -29,7 +57,7 @@ export function LoginForm() {
       const client = createBrowserClient();
       await signInWithGitHub(client, { redirectTo: callbackUrl });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "登录失败，请重试");
+      setError(formatLoginError(cause));
       setLoading(false);
     }
   }
