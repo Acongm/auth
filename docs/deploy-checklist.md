@@ -46,6 +46,8 @@ NEXT_PUBLIC_AUTH_COOKIE_DOMAIN=.acongm.com
 ```
 
 > anon key 在 Supabase：**Project Settings → API → Project API keys → anon public**
+>
+> 生产环境**不要**设置 `NEXT_PUBLIC_AUTH_LOCAL=1`。添加或修改变量后请 **Redeploy**，否则可能出现 `MIDDLEWARE_INVOCATION_FAILED`（500）。
 
 然后点击 **Deploy**。
 

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { CookieOptions } from "@supabase/ssr";
 import { createServerClient } from "@acongm/auth-client/server";
+import { getSupabasePublicEnv } from "@/lib/supabase/env";
 import {
   getAllowedReturnHosts,
   getDefaultReturnTo,
@@ -22,10 +23,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  const supabaseEnv = getSupabasePublicEnv();
+  if (!supabaseEnv) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("error", "supabase_not_configured");
+    return NextResponse.redirect(loginUrl);
+  }
+
   const response = NextResponse.redirect(destination);
   const supabase = createServerClient({
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl: supabaseEnv.supabaseUrl,
+    supabaseAnonKey: supabaseEnv.supabaseAnonKey,
     cookies: {
       getAll() {
         return request.cookies.getAll();
