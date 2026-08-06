@@ -9,27 +9,31 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  let response = NextResponse.next({
-    request,
-  });
+  try {
+    let response = NextResponse.next({
+      request,
+    });
 
-  const supabase = createServerClient({
-    supabaseUrl: supabaseEnv.supabaseUrl,
-    supabaseAnonKey: supabaseEnv.supabaseAnonKey,
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
+    const supabase = createServerClient({
+      supabaseUrl: supabaseEnv.supabaseUrl,
+      supabaseAnonKey: supabaseEnv.supabaseAnonKey,
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set(name, value);
+          response = NextResponse.next({ request });
+          response.cookies.set(name, value, options);
+        },
       },
-      set(name: string, value: string, options: CookieOptions) {
-        request.cookies.set(name, value);
-        response = NextResponse.next({ request });
-        response.cookies.set(name, value, options);
-      },
-    },
-  });
+    });
 
-  await supabase.auth.getUser();
-  return response;
+    await supabase.auth.getUser();
+    return response;
+  } catch {
+    return NextResponse.next({ request });
+  }
 }
 
 export const config = {
