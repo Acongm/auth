@@ -1,15 +1,21 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { CookieOptions } from "@supabase/ssr";
 import { createServerClient } from "@acongm/auth-client/server";
+import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
 export async function middleware(request: NextRequest) {
+  const supabaseEnv = getSupabasePublicEnv();
+  if (!supabaseEnv) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({
     request,
   });
 
   const supabase = createServerClient({
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl: supabaseEnv.supabaseUrl,
+    supabaseAnonKey: supabaseEnv.supabaseAnonKey,
     cookies: {
       getAll() {
         return request.cookies.getAll();

@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { loadSiteConfig } from "@acongm/config";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export async function GET() {
   const config = loadSiteConfig();
-  const supabaseConfigured = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  );
+  const supabaseConfigured = isSupabaseConfigured();
 
   return NextResponse.json({
     ok: true,

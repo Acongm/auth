@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { CookieOptions } from "@supabase/ssr";
 import { createServerClient } from "@acongm/auth-client/server";
+import { getSupabasePublicEnv } from "@/lib/supabase/env";
 import { getDefaultReturnTo } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -8,9 +9,11 @@ export async function GET(request: NextRequest) {
     new URL("/login", request.url).toString(),
   );
 
-  const supabase = createServerClient({
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  const supabaseEnv = getSupabasePublicEnv();
+  if (supabaseEnv) {
+    const supabase = createServerClient({
+      supabaseUrl: supabaseEnv.supabaseUrl,
+      supabaseAnonKey: supabaseEnv.supabaseAnonKey,
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -21,7 +24,8 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  await supabase.auth.signOut();
+    await supabase.auth.signOut();
+  }
 
   const returnTo = request.nextUrl.searchParams.get("return_to");
   if (returnTo) {
