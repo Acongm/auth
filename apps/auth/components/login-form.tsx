@@ -1,10 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
-import { AuthShell, GitHubSignInButton } from "@/components/auth-shell";
+import {
+  createBrowserClient,
+  signInWithOAuth,
+  signInWithPassword,
+  signUpWithPassword,
+} from "@acongm/auth-client";
+import { AuthShell, SocialSignInButton } from "@/components/auth-shell";
 
-function formatLoginError(cause: unknown): string {
+type AuthMode = "signin" | "signup";
+type BusyKind = "email" | "github" | "google" | null;
+
+function formatAuthError(cause: unknown): string {
+  if (cause instanceof Error) {
+    return cause.message;
+  }
   if (cause && typeof cause === "object") {
     const record = cause as {
       message?: string;
@@ -13,30 +25,41 @@ function formatLoginError(cause: unknown): string {
       code?: string | number;
     };
     const message = record.message || record.msg || "";
-    const code = String(record.error_code || record.code || "");
     if (
       /provider is not enabled/i.test(message) ||
-      (/validation_failed/i.test(code) && /provider/i.test(message))
+      String(record.error_code || record.code || "") === "validation_failed"
     ) {
-      return "GitHub 登录未启用：请在 Supabase Dashboard → Authentication → Providers → GitHub 开启，并填写 GitHub OAuth App 的 Client ID / Secret。";
-    }
-    if (cause instanceof Error) {
-      if (/provider is not enabled/i.test(cause.message)) {
-        return "GitHub 登录未启用：请在 Supabase Dashboard → Authentication → Providers → GitHub 开启，并填写 GitHub OAuth App 的 Client ID / Secret。";
-      }
-      return cause.message;
+      return message || "该登录方式未启用，请检查 Supabase Providers 配置。";
     }
     if (message) return message;
   }
+  return "操作失败，请重试";
+}
 
-  return "登录失败，请重试";
+function safeReturnTo(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
 }
 
 export function LoginForm() {
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get("return_to");
-  const [loading, setLoading] = useState(false);
+  const returnTo = safeReturnTo(searchParams.get("return_to"));
+  const requestedProvider = searchParams.get("provider");
+  const initialMode =
+    searchParams.get("mode") === "signup" ? "signup" : "signin";
+
+  const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState<BusyKind>(null);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
   const callbackUrl = useMemo(() => {
     const url = new URL("/callback", window.location.origin);
@@ -46,41 +69,226 @@ export function LoginForm() {
     return url.toString();
   }, [returnTo]);
 
-  async function handleSignIn() {
-    setLoading(true);
-    setError(null);
+  const finishRedirect = (fallback = "/") => {
+    window.location.assign(returnTo || fallback);
+  };
 
+  async function handleOAuth(provider: "github" | "google") {
+    setBusy(provider);
+    setError(null);
+    setInfo(null);
     try {
-      const { createBrowserClient, signInWithGitHub } = await import(
-        "@acongm/auth-client"
-      );
       const client = createBrowserClient();
-      await signInWithGitHub(client, { redirectTo: callbackUrl });
+      await signInWithOAuth(client, { provider, redirectTo: callbackUrl });
     } catch (cause) {
-      setError(formatLoginError(cause));
-      setLoading(false);
+      setError(formatAuthError(cause));
+      setBusy(null);
     }
   }
 
+  useEffect(() => {
+    if (requestedProvider !== "github" && requestedProvider !== "google") {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      setBusy(requestedProvider);
+      setError(null);
+      try {
+        const client = createBrowserClient();
+        await signInWithOAuth(client, {
+          provider: requestedProvider,
+          redirectTo: callbackUrl,
+        });
+      } catch (cause) {
+        if (!cancelled) {
+          setError(formatAuthError(cause));
+          setBusy(null);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [requestedProvider, callbackUrl]);
+
+  async function handleEmailSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy("email");
+    setError(null);
+    setInfo(null);
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || password.length < 6) {
+      setError("请输入有效邮箱，且密码至少 6 位。");
+      setBusy(null);
+      return;
+    }
+
+    try {
+      const client = createBrowserClient();
+
+      if (mode === "signin") {
+        await signInWithPassword(client, {
+          email: trimmedEmail,
+          password,
+        });
+        finishRedirect();
+        return;
+      }
+
+      const result = await signUpWithPassword(client, {
+        email: trimmedEmail,
+        password,
+        emailRedirectTo: callbackUrl,
+      });
+
+      if (result.needsEmailConfirmation) {
+        setInfo("注册成功。请查收确认邮件后再登录（若未收到可检查垃圾箱）。");
+        setMode("signin");
+        setBusy(null);
+        return;
+      }
+
+      finishRedirect();
+    } catch (cause) {
+      setError(formatAuthError(cause));
+      setBusy(null);
+    }
+  }
+
+  const loading = busy !== null;
+
   return (
     <AuthShell
-      description="通过 auth.acongm.com 完成 GitHub OAuth 登录，并在所有 acongm.com 子域共享会话。"
+      description="通过 auth.acongm.com 完成邮箱或第三方登录，并在所有 acongm.com 子域共享会话。"
       title="统一登录中转"
     >
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-semibold">登录到 Acongm</h2>
+          <h2 className="text-2xl font-semibold">
+            {mode === "signin" ? "登录到 Acongm" : "注册 Acongm 账号"}
+          </h2>
           <p className="mt-2 text-sm leading-6 text-slate-400">
-            登录成功后将返回来源站点。未配置 Supabase 时，请先设置环境变量。
+            支持邮箱密码，以及 Google / GitHub。登录成功后将返回来源站点。
           </p>
         </div>
 
-        <GitHubSignInButton disabled={loading} onClick={handleSignIn} />
+        <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-1">
+          <button
+            type="button"
+            className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+              mode === "signin"
+                ? "bg-white text-slate-900"
+                : "text-slate-300 hover:bg-white/5"
+            }`}
+            onClick={() => {
+              setMode("signin");
+              setError(null);
+              setInfo(null);
+            }}
+            disabled={loading}
+          >
+            登录
+          </button>
+          <button
+            type="button"
+            className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+              mode === "signup"
+                ? "bg-white text-slate-900"
+                : "text-slate-300 hover:bg-white/5"
+            }`}
+            onClick={() => {
+              setMode("signup");
+              setError(null);
+              setInfo(null);
+            }}
+            disabled={loading}
+          >
+            注册
+          </button>
+        </div>
+
+        <form className="space-y-3" onSubmit={handleEmailSubmit}>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              邮箱
+            </span>
+            <input
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none ring-blue-400/40 placeholder:text-slate-500 focus:ring-2"
+              placeholder="you@example.com"
+              disabled={loading}
+            />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              密码
+            </span>
+            <input
+              type="password"
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              required
+              minLength={6}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none ring-blue-400/40 placeholder:text-slate-500 focus:ring-2"
+              placeholder="至少 6 位"
+              disabled={loading}
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex w-full items-center justify-center rounded-2xl bg-blue-500 px-5 py-3.5 text-base font-medium text-white transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {busy === "email"
+              ? mode === "signin"
+                ? "登录中…"
+                : "注册中…"
+              : mode === "signin"
+                ? "邮箱登录"
+                : "注册账号"}
+          </button>
+        </form>
+
+        <div className="flex items-center gap-3 text-xs text-slate-500">
+          <span className="h-px flex-1 bg-white/10" />
+          或使用第三方
+          <span className="h-px flex-1 bg-white/10" />
+        </div>
+
+        <div className="space-y-3">
+          <SocialSignInButton
+            provider="google"
+            disabled={loading}
+            onClick={() => {
+              void handleOAuth("google");
+            }}
+          />
+          <SocialSignInButton
+            provider="github"
+            disabled={loading}
+            onClick={() => {
+              void handleOAuth("github");
+            }}
+          />
+        </div>
 
         {returnTo ? (
           <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
             登录后返回：
             <span className="mt-1 block break-all text-blue-200">{returnTo}</span>
+          </p>
+        ) : null}
+
+        {info ? (
+          <p className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+            {info}
           </p>
         ) : null}
 
@@ -95,6 +303,11 @@ export function LoginForm() {
           <code className="rounded bg-white/10 px-1.5 py-0.5">
             https://auth.acongm.com/login?return_to=...
           </code>
+          ，亦支持{" "}
+          <code className="rounded bg-white/10 px-1.5 py-0.5">
+            ?provider=google|github
+          </code>
+          。
         </p>
       </div>
     </AuthShell>

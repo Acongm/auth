@@ -14,7 +14,7 @@ sequenceDiagram
 
   User->>Portal: 访问受保护页面
   Portal->>Auth: 重定向 /login?return_to=...
-  User->>Auth: GitHub OAuth
+  User->>Auth: 邮箱 / Google / GitHub 登录
   Auth->>Supabase: exchangeCodeForSession
   Supabase-->>Auth: JWT + refresh token
   Auth-->>User: Set-Cookie Domain=.acongm.com
@@ -32,19 +32,54 @@ sequenceDiagram
 | 共享客户端 | `@acongm/auth-client` | portal/chat 复用 cookie + hooks |
 | UI | Tailwind + Lucide | 轻量登录页，无 vendor lock-in |
 
+## 登录方式
+
+| 方式 | 状态 | 说明 |
+| --- | --- | --- |
+| 邮箱 + 密码 | 代码已接；Supabase Email 默认开启 | `/login` 表单登录/注册 |
+| Google | 代码已接；需 Dashboard 启用 | OAuth，易接入 |
+| GitHub | 代码已接；需 Dashboard 启用 | OAuth |
+
+本地可先用**邮箱注册/登录**验收（`email: true`）。第三方需在 Supabase Providers 填入 Client ID/Secret。
+
+可选深链：
+
+```
+/login?return_to=https://www.acongm.com
+/login?mode=signup
+/login?provider=google&return_to=...
+/login?provider=github&return_to=...
+```
+
 ## Supabase 控制台
 
+### Email（手动账号）
+
+1. **Authentication → Providers → Email**：保持 Enabled  
+2. 开发期可将 **Confirm email** 关闭，便于本地立即登录；生产建议开启并配置 SMTP  
+3. 注册后若未收到确认邮件，检查 Dashboard → Authentication → Users
+
+### Google
+
+1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) 创建 OAuth 客户端（Web）  
+2. Authorized redirect URI：`https://ejprvntpxlyydkzsjqnv.supabase.co/auth/v1/callback`  
+3. Supabase → **Providers → Google**：Enable，填入 Client ID / Secret  
+
+### GitHub
+
 1. **Authentication → Providers → GitHub**：启用并填入 GitHub OAuth App  
-   - 若出现 `Unsupported provider: provider is not enabled`，说明 GitHub Provider 仍为关闭状态（与代码无关）
-   - 可用脚本（需 token + GitHub OAuth 凭证）：`scripts/configure-supabase-github-auth.sh`（仓库根 `acongm/scripts`）
-2. **GitHub OAuth App Callback**：填 Supabase `https://<project>.supabase.co/auth/v1/callback`
-3. **Authentication → URL Configuration**
-   - Site URL: `https://auth.acongm.com`
-   - Redirect URLs:
-     - `https://auth.acongm.com/callback`
-     - `https://www.acongm.com/*`
-     - `https://chat.acongm.com/*`
-     - `http://localhost:3100/callback`
+   - 若出现 `Unsupported provider: provider is not enabled`，说明 Provider 仍为关闭（与代码无关）  
+   - 脚本：`scripts/configure-supabase-github-auth.sh`（可同时传 Google 凭证）  
+2. **GitHub OAuth App Callback**：`https://<project>.supabase.co/auth/v1/callback`
+
+### URL Configuration
+
+- Site URL: `https://auth.acongm.com`
+- Redirect URLs:
+  - `https://auth.acongm.com/callback`
+  - `https://www.acongm.com/*`
+  - `https://chat.acongm.com/*`
+  - `http://localhost:3100/callback`
 
 ## Vercel 部署
 

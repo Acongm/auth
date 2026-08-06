@@ -24,4 +24,6 @@ limits:
 oauth:
   providers:
     - github
+    - google
+  # 邮箱密码由 Supabase Email provider 提供（默认已开）
   claimThreads: true
