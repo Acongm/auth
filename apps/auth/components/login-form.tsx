@@ -14,26 +14,36 @@ type AuthMode = "signin" | "signup";
 type BusyKind = "email" | "github" | "google" | null;
 
 function formatAuthError(cause: unknown): string {
-  if (cause instanceof Error) {
-    return cause.message;
+  const message =
+    cause instanceof Error
+      ? cause.message
+      : cause && typeof cause === "object"
+        ? String(
+            (cause as { message?: string; msg?: string }).message ||
+              (cause as { msg?: string }).msg ||
+              "",
+          )
+        : "";
+
+  if (!message) return "操作失败，请重试";
+
+  if (/provider is not enabled/i.test(message)) {
+    return "该第三方登录未启用：请在 Supabase → Authentication → Providers 开启对应 Provider，并填写 Client ID / Secret。";
   }
-  if (cause && typeof cause === "object") {
-    const record = cause as {
-      message?: string;
-      msg?: string;
-      error_code?: string;
-      code?: string | number;
-    };
-    const message = record.message || record.msg || "";
-    if (
-      /provider is not enabled/i.test(message) ||
-      String(record.error_code || record.code || "") === "validation_failed"
-    ) {
-      return message || "该登录方式未启用，请检查 Supabase Providers 配置。";
-    }
-    if (message) return message;
+  if (/email address not authorized/i.test(message)) {
+    return "当前项目未配置自定义 SMTP，确认邮件只能发给组织成员邮箱。本地开发可在 Supabase → Providers → Email 关闭 Confirm email，或改用组织成员邮箱注册。";
   }
-  return "操作失败，请重试";
+  if (/email not confirmed/i.test(message)) {
+    return "邮箱尚未确认。请查收确认邮件，或在 Supabase Dashboard 关闭 Confirm email 后再试。";
+  }
+  if (/invalid login credentials/i.test(message)) {
+    return "邮箱或密码不正确。";
+  }
+  if (/user already registered/i.test(message)) {
+    return "该邮箱已注册，请直接登录。";
+  }
+
+  return message;
 }
 
 function safeReturnTo(value: string | null): string | null {

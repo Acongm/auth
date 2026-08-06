@@ -56,8 +56,15 @@ sequenceDiagram
 ### Email（手动账号）
 
 1. **Authentication → Providers → Email**：保持 Enabled  
-2. 开发期可将 **Confirm email** 关闭，便于本地立即登录；生产建议开启并配置 SMTP  
-3. 注册后若未收到确认邮件，检查 Dashboard → Authentication → Users
+2. **本地开发强烈建议**：关闭 **Confirm email**，否则注册后无法立即登录（默认 SMTP 也只能给组织成员发信）  
+3. 生产建议开启 Confirm email，并配置自定义 SMTP（Authentication → SMTP）  
+4. 若已注册但未确认，可在 Dashboard → Authentication → Users 手动 Confirm，或用 SQL：
+
+```sql
+update auth.users
+set email_confirmed_at = now()
+where email = 'you@example.com';
+```
 
 ### Google
 
