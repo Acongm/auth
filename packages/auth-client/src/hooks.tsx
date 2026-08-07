@@ -6,7 +6,12 @@ import {
   claimAnonymousThreads,
   createBrowserClient,
   signInWithGitHub,
+  signInWithGoogle,
+  signInWithOAuth,
+  signInWithPassword,
   signOut,
+  signUpWithPassword,
+  type SocialAuthProvider,
 } from "./client.js";
 
 export function useSession() {
@@ -53,9 +58,37 @@ export function useUser() {
 export function useAuthActions() {
   const { client } = useSession();
 
+  const loginWithOAuth = useCallback(
+    async (provider: SocialAuthProvider, redirectTo?: string) => {
+      await signInWithOAuth(client, { provider, redirectTo });
+    },
+    [client],
+  );
+
   const loginWithGitHub = useCallback(
     async (redirectTo?: string) => {
       await signInWithGitHub(client, { redirectTo });
+    },
+    [client],
+  );
+
+  const loginWithGoogle = useCallback(
+    async (redirectTo?: string) => {
+      await signInWithGoogle(client, { redirectTo });
+    },
+    [client],
+  );
+
+  const loginWithPassword = useCallback(
+    async (email: string, password: string) => {
+      return signInWithPassword(client, { email, password });
+    },
+    [client],
+  );
+
+  const registerWithPassword = useCallback(
+    async (email: string, password: string, emailRedirectTo?: string) => {
+      return signUpWithPassword(client, { email, password, emailRedirectTo });
     },
     [client],
   );
@@ -64,7 +97,15 @@ export function useAuthActions() {
     await signOut(client);
   }, [client]);
 
-  return { loginWithGitHub, logout, client };
+  return {
+    loginWithOAuth,
+    loginWithGitHub,
+    loginWithGoogle,
+    loginWithPassword,
+    registerWithPassword,
+    logout,
+    client,
+  };
 }
 
 export { claimAnonymousThreads };
