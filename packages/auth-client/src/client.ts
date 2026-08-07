@@ -1,5 +1,39 @@
-import { createBrowserClient as createSupabaseBrowserClient } from "@supabase/ssr";
-import type { Provider, Session, User } from "@supabase/supabase-js";
+import { createBrowserClient as createSupabaseBrowserClient } from '@supabase/ssr';
+import type { Provider, Session, User } from '@supabase/supabase-js';
+
+export function isAuthConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim(),
+  );
+}
+
+export function getAuthBaseUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_AUTH_URL?.trim() ||
+    process.env.SITE_DOMAIN_AUTH?.trim() ||
+    'https://auth.acongm.com'
+  );
+}
+
+/** 浏览器安全：跳转 SSO 登录（不读本地 yaml） */
+export function getOAuthLoginUrl(options?: {
+  returnTo?: string;
+  provider?: SocialAuthProvider;
+  mode?: 'signin' | 'signup';
+}): string {
+  const url = new URL('/login', getAuthBaseUrl());
+  if (options?.returnTo) {
+    url.searchParams.set('return_to', options.returnTo);
+  }
+  if (options?.provider) {
+    url.searchParams.set('provider', options.provider);
+  }
+  if (options?.mode) {
+    url.searchParams.set('mode', options.mode);
+  }
+  return url.toString();
+}
 
 export type AuthClientOptions = {
   supabaseUrl: string;
@@ -7,22 +41,21 @@ export type AuthClientOptions = {
   cookieDomain?: string;
 };
 
-/** SSO 站支持的第三方 OAuth（需在 Supabase Providers 中启用） */
-export type SocialAuthProvider = "github" | "google";
+export type SocialAuthProvider = 'github' | 'google';
 
-const SOCIAL_PROVIDERS: readonly SocialAuthProvider[] = ["github", "google"];
+const SOCIAL_PROVIDERS: readonly SocialAuthProvider[] = ['github', 'google'];
 
 function getCookieDomain(): string | undefined {
-  if (process.env.NEXT_PUBLIC_AUTH_LOCAL === "1") {
+  if (process.env.NEXT_PUBLIC_AUTH_LOCAL === '1') {
     return undefined;
   }
-
-  return process.env.NEXT_PUBLIC_AUTH_COOKIE_DOMAIN ?? ".acongm.com";
+  return process.env.NEXT_PUBLIC_AUTH_COOKIE_DOMAIN ?? '.acongm.com';
 }
 
 function formatProviderError(provider: string, message: string): Error {
   if (/provider is not enabled/i.test(message)) {
-    const label = provider === "google" ? "Google" : provider === "github" ? "GitHub" : provider;
+    const label =
+      provider === 'google' ? 'Google' : provider === 'github' ? 'GitHub' : provider;
     return new Error(
       `${label} 登录未启用：请在 Supabase Dashboard → Authentication → Providers → ${label} 开启，并填写 Client ID / Secret。`,
     );
@@ -38,16 +71,16 @@ export function createBrowserClient(options?: Partial<AuthClientOptions>) {
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      'Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY',
     );
   }
 
   return createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey, {
     cookieOptions: {
       domain: options?.cookieDomain ?? getCookieDomain(),
-      path: "/",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
     },
   });
 }
@@ -68,7 +101,6 @@ export async function signInWithOAuth(
       redirectTo: options.redirectTo,
     },
   });
-
   if (error) {
     throw formatProviderError(options.provider, error.message);
   }
@@ -79,7 +111,7 @@ export async function signInWithGitHub(
   options?: { redirectTo?: string },
 ): Promise<void> {
   await signInWithOAuth(client, {
-    provider: "github",
+    provider: 'github',
     redirectTo: options?.redirectTo,
   });
 }
@@ -89,7 +121,7 @@ export async function signInWithGoogle(
   options?: { redirectTo?: string },
 ): Promise<void> {
   await signInWithOAuth(client, {
-    provider: "google",
+    provider: 'google',
     redirectTo: options?.redirectTo,
   });
 }
@@ -97,7 +129,6 @@ export async function signInWithGoogle(
 export type EmailAuthResult = {
   session: Session | null;
   user: User | null;
-  /** 注册成功但需邮箱确认时为 true */
   needsEmailConfirmation: boolean;
 };
 
@@ -109,11 +140,9 @@ export async function signInWithPassword(
     email: options.email.trim(),
     password: options.password,
   });
-
   if (error) {
-    throw new Error(error.message || "邮箱登录失败");
+    throw new Error(error.message || '邮箱登录失败');
   }
-
   return {
     session: data.session,
     user: data.user,
@@ -132,11 +161,9 @@ export async function signUpWithPassword(
       emailRedirectTo: options.emailRedirectTo,
     },
   });
-
   if (error) {
-    throw new Error(error.message || "注册失败");
+    throw new Error(error.message || '注册失败');
   }
-
   return {
     session: data.session,
     user: data.user,
@@ -148,9 +175,7 @@ export async function signOut(
   client: ReturnType<typeof createBrowserClient>,
 ): Promise<void> {
   const { error } = await client.auth.signOut();
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 }
 
 export interface ClaimAnonymousThreadsInput {
@@ -161,26 +186,42 @@ export interface ClaimAnonymousThreadsInput {
 
 export interface ClaimAnonymousThreadsResult {
   claimed: number;
+  claimedThreads?: number;
+  threadIds?: string[];
 }
 
 export async function claimAnonymousThreads(
   input: ClaimAnonymousThreadsInput,
 ): Promise<ClaimAnonymousThreadsResult> {
-  const response = await fetch(`${input.apiBase}/api/auth/oauth/claim`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${input.accessToken}`,
-      "Content-Type": "application/json",
+  const response = await fetch(
+    `${input.apiBase.replace(/\/$/, '')}/api/auth/oauth/claim`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${input.accessToken}`,
+        'Content-Type': 'application/json',
+        'x-client-id': input.clientId,
+      },
+      body: JSON.stringify({ clientId: input.clientId }),
     },
-    body: JSON.stringify({ clientId: input.clientId }),
-  });
+  );
 
   if (!response.ok) {
     const text = await response.text();
     throw new Error(`Claim failed (${response.status}): ${text}`);
   }
 
-  return (await response.json()) as ClaimAnonymousThreadsResult;
+  const body = (await response.json()) as {
+    claimed?: number;
+    claimedThreads?: number;
+    threadIds?: string[];
+  };
+
+  return {
+    claimed: body.claimed ?? body.claimedThreads ?? 0,
+    claimedThreads: body.claimedThreads ?? body.claimed,
+    threadIds: body.threadIds,
+  };
 }
 
-export type { Session, User } from "@supabase/supabase-js";
+export type { Session, User } from '@supabase/supabase-js';

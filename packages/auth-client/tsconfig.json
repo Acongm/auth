@@ -1,17 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "types": ["node"],
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "declaration": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src"]
 }

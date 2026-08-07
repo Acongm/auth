@@ -1,7 +1,7 @@
 import {
   createServerClient as createSupabaseServerClient,
   type CookieOptions,
-} from "@supabase/ssr";
+} from '@supabase/ssr';
 
 export type CookieStore = {
   getAll: () => Array<{ name: string; value: string }>;
@@ -16,11 +16,10 @@ export type ServerClientOptions = {
 };
 
 function getCookieDomain(): string | undefined {
-  if (process.env.NEXT_PUBLIC_AUTH_LOCAL === "1") {
+  if (process.env.NEXT_PUBLIC_AUTH_LOCAL === '1') {
     return undefined;
   }
-
-  return process.env.NEXT_PUBLIC_AUTH_COOKIE_DOMAIN ?? ".acongm.com";
+  return process.env.NEXT_PUBLIC_AUTH_COOKIE_DOMAIN ?? '.acongm.com';
 }
 
 export function createServerClient(options: ServerClientOptions) {
@@ -43,9 +42,9 @@ export function createServerClient(options: ServerClientOptions) {
             options.cookies.set(cookie.name, cookie.value, {
               ...cookie.options,
               domain: options.cookieDomain ?? getCookieDomain(),
-              path: "/",
-              sameSite: "lax",
-              secure: process.env.NODE_ENV === "production",
+              path: '/',
+              sameSite: 'lax',
+              secure: process.env.NODE_ENV === 'production',
             });
           }
         },
