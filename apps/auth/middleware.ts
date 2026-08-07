@@ -4,6 +4,16 @@ import { createServerClient } from "@acongm/auth-client/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
 export async function middleware(request: NextRequest) {
+  // Site URL misconfig often lands OAuth codes on `/` — forward to /callback.
+  if (
+    request.nextUrl.pathname === "/" &&
+    request.nextUrl.searchParams.has("code")
+  ) {
+    const target = request.nextUrl.clone();
+    target.pathname = "/callback";
+    return NextResponse.redirect(target);
+  }
+
   const supabaseEnv = getSupabasePublicEnv();
   if (!supabaseEnv) {
     return NextResponse.next({ request });
