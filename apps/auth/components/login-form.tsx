@@ -9,8 +9,11 @@ import {
   signUpWithPassword,
 } from "@acongm/auth-client";
 import { AuthShell, SocialSignInButton } from "@/components/auth-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   AUTH_RETURN_TO_COOKIE,
+  cn,
   isLocalHostname,
 } from "@/lib/utils";
 
@@ -220,19 +223,21 @@ export function LoginForm() {
           <h2 className="text-2xl font-semibold">
             {mode === "signin" ? "登录到 Acongm" : "注册 Acongm 账号"}
           </h2>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
             支持邮箱密码，以及 Google / GitHub。登录成功后将返回来源站点。
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-1">
-          <button
-            type="button"
-            className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+        <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted p-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "w-full rounded-md",
               mode === "signin"
-                ? "bg-white text-slate-900"
-                : "text-slate-300 hover:bg-white/5"
-            }`}
+                ? "bg-background text-foreground shadow-sm hover:bg-background"
+                : "text-muted-foreground",
+            )}
             onClick={() => {
               setMode("signin");
               setError(null);
@@ -241,14 +246,16 @@ export function LoginForm() {
             disabled={loading}
           >
             登录
-          </button>
-          <button
-            type="button"
-            className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "w-full rounded-md",
               mode === "signup"
-                ? "bg-white text-slate-900"
-                : "text-slate-300 hover:bg-white/5"
-            }`}
+                ? "bg-background text-foreground shadow-sm hover:bg-background"
+                : "text-muted-foreground",
+            )}
             onClick={() => {
               setMode("signup");
               setError(null);
@@ -257,45 +264,46 @@ export function LoginForm() {
             disabled={loading}
           >
             注册
-          </button>
+          </Button>
         </div>
 
         <form className="space-y-3" onSubmit={handleEmailSubmit}>
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               邮箱
             </span>
-            <input
+            <Input
               type="email"
               autoComplete="email"
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none ring-blue-400/40 placeholder:text-slate-500 focus:ring-2"
+              className="h-12 rounded-lg px-4"
               placeholder="you@example.com"
               disabled={loading}
             />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               密码
             </span>
-            <input
+            <Input
               type="password"
               autoComplete={mode === "signin" ? "current-password" : "new-password"}
               required
               minLength={6}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none ring-blue-400/40 placeholder:text-slate-500 focus:ring-2"
+              className="h-12 rounded-lg px-4"
               placeholder="至少 6 位"
               disabled={loading}
             />
           </label>
-          <button
+          <Button
             type="submit"
+            size="lg"
             disabled={loading}
-            className="inline-flex w-full items-center justify-center rounded-2xl bg-blue-500 px-5 py-3.5 text-base font-medium text-white transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full"
           >
             {busy === "email"
               ? mode === "signin"
@@ -304,13 +312,13 @@ export function LoginForm() {
               : mode === "signin"
                 ? "邮箱登录"
                 : "注册账号"}
-          </button>
+          </Button>
         </form>
 
-        <div className="flex items-center gap-3 text-xs text-slate-500">
-          <span className="h-px flex-1 bg-white/10" />
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
           或使用第三方
-          <span className="h-px flex-1 bg-white/10" />
+          <span className="h-px flex-1 bg-border" />
         </div>
 
         <div className="space-y-3">
@@ -331,31 +339,31 @@ export function LoginForm() {
         </div>
 
         {returnTo ? (
-          <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+          <p className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
             登录后返回：
-            <span className="mt-1 block break-all text-blue-200">{returnTo}</span>
+            <span className="mt-1 block break-all text-primary">{returnTo}</span>
           </p>
         ) : null}
 
         {info ? (
-          <p className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+          <p className="rounded-lg border border-primary/30 bg-accent px-4 py-3 text-sm text-accent-foreground">
             {info}
           </p>
         ) : null}
 
         {error ? (
-          <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
           </p>
         ) : null}
 
-        <p className="text-xs leading-5 text-slate-500">
+        <p className="text-xs leading-5 text-muted-foreground">
           其他应用可跳转至{" "}
-          <code className="rounded bg-white/10 px-1.5 py-0.5">
+          <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
             https://auth.acongm.com/login?return_to=...
           </code>
           ，亦支持{" "}
-          <code className="rounded bg-white/10 px-1.5 py-0.5">
+          <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
             ?provider=google|github
           </code>
           。
