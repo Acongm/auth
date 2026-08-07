@@ -1,6 +1,10 @@
 import { createBrowserClient as createSupabaseBrowserClient } from '@supabase/ssr';
 import type { Provider, Session, User } from '@supabase/supabase-js';
 
+import {
+  resolveLoginReturnTo,
+} from './return-to';
+
 export function isAuthConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
@@ -23,8 +27,9 @@ export function getOAuthLoginUrl(options?: {
   mode?: 'signin' | 'signup';
 }): string {
   const url = new URL('/login', getAuthBaseUrl());
-  if (options?.returnTo) {
-    url.searchParams.set('return_to', options.returnTo);
+  const returnTo = resolveLoginReturnTo(options?.returnTo);
+  if (returnTo) {
+    url.searchParams.set('return_to', returnTo);
   }
   if (options?.provider) {
     url.searchParams.set('provider', options.provider);

@@ -64,11 +64,7 @@ export function useAuthActions() {
   const { client, configured } = useSession();
 
   const login = useCallback((returnTo?: string) => {
-    const href =
-      typeof window !== 'undefined'
-        ? getOAuthLoginUrl({ returnTo: returnTo ?? window.location.href })
-        : getOAuthLoginUrl();
-    window.location.href = href;
+    window.location.href = getOAuthLoginUrl({ returnTo });
   }, []);
 
   const logout = useCallback(async () => {

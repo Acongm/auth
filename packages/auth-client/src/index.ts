@@ -12,6 +12,11 @@ export {
   signOut,
   signUpWithPassword,
 } from './client';
+export {
+  inferReturnToFromUrl,
+  isAcongmHostname,
+  resolveLoginReturnTo,
+} from './return-to';
 export type {
   AuthClientOptions,
   ClaimAnonymousThreadsInput,

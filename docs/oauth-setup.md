@@ -42,14 +42,27 @@ sequenceDiagram
 
 本地可先用**邮箱注册/登录**验收（`email: true`）。第三方需在 Supabase Providers 填入 Client ID/Secret。
 
-可选深链：
+## 多系统回跳（return_to）
 
+各子系统跳转登录时应带上来源地址，登录成功后回到**来源站点**（`www`、`chat`、`auth` 等 `*.acongm.com` 均允许）：
+
+```ts
+import { getOAuthLoginUrl } from "@acongm/auth-client";
+
+// 浏览器内会自动附带当前页 URL；也可显式传入
+window.location.href = getOAuthLoginUrl({
+  returnTo: window.location.href,
+});
+// → https://auth.acongm.com/login?return_to=https://www.acongm.com/...
 ```
-/login?return_to=https://www.acongm.com
-/login?mode=signup
-/login?provider=google&return_to=...
-/login?provider=github&return_to=...
-```
+
+| 场景 | 登录 URL | 登录后跳转 |
+| --- | --- | --- |
+| 从 `www.acongm.com` 点登录 | `?return_to=https://www.acongm.com/...` | 回到 www |
+| 直接打开 `auth.acongm.com/login` | 无参数 | 回到 `https://auth.acongm.com` |
+| 从 `chat.acongm.com` 点登录 | `?return_to=https://chat.acongm.com/...` | 回到 chat |
+
+若未带 `return_to`，auth 登录页会尝试从 `document.referrer` 推断来源；OAuth 期间目标地址保存在 `acongm_auth_return_to` cookie 中。
 
 ## Supabase 控制台
 

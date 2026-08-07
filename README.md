@@ -38,6 +38,8 @@ Root Directory 设为 `apps/auth`，详见 [docs/oauth-setup.md](./docs/oauth-se
 ## 子应用接入
 
 ```ts
-import { getOAuthLoginUrl } from "@acongm/config";
-import { createBrowserClient, useSession } from "@acongm/auth-client";
+import { getOAuthLoginUrl, useSession } from "@acongm/auth-client";
+
+// 浏览器内自动附带 return_to=当前页；登录后回到来源站点
+window.location.href = getOAuthLoginUrl();
 ```

@@ -1,5 +1,6 @@
 'use client';
 
+import { getOAuthLoginUrl } from './client';
 import { useAuthActions, useSession } from './hooks';
 
 export type AuthAccountButtonProps = {
@@ -37,11 +38,12 @@ export function AuthAccountButton({
 
   if (!configured) {
     if (variant === 'avatar') return null;
+    const loginHref = getOAuthLoginUrl();
     if (variant === 'icon') {
       return (
         <a
           className={className ?? 'acongm-auth-icon-btn'}
-          href="https://auth.acongm.com/login"
+          href={loginHref}
           title="登录"
           aria-label="登录"
         >
@@ -52,7 +54,7 @@ export function AuthAccountButton({
     return (
       <a
         className={className ?? 'acongm-auth-btn'}
-        href="https://auth.acongm.com/login"
+        href={loginHref}
         data-variant={variant}
       >
         登录

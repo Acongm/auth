@@ -13,6 +13,7 @@ import {
   AUTH_RETURN_TO_COOKIE,
   isLocalHostname,
 } from "@/lib/utils";
+import { resolveClientReturnTo } from "@/lib/return-to";
 
 type AuthMode = "signin" | "signup";
 type BusyKind = "email" | "github" | "google" | null;
@@ -109,7 +110,14 @@ function formatCallbackError(code: string | null): string | null {
 
 export function LoginForm() {
   const searchParams = useSearchParams();
-  const returnTo = safeReturnTo(searchParams.get("return_to"));
+  const explicitReturnTo = safeReturnTo(searchParams.get("return_to"));
+  const returnTo = useMemo(
+    () =>
+      resolveClientReturnTo(explicitReturnTo, {
+        allowLocalhost: allowLocalReturnTo(),
+      }),
+    [explicitReturnTo],
+  );
   const requestedProvider = searchParams.get("provider");
   const callbackError = formatCallbackError(searchParams.get("error"));
   const initialMode =
@@ -135,8 +143,8 @@ export function LoginForm() {
     }
   }, [callbackError]);
 
-  const finishRedirect = (fallback = "https://www.acongm.com") => {
-    window.location.assign(returnTo || fallback);
+  const finishRedirect = () => {
+    window.location.assign(returnTo);
   };
 
   async function handleOAuth(provider: "github" | "google") {
