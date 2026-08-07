@@ -1,8 +1,18 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+export const AUTH_RETURN_TO_COOKIE = "acongm_auth_return_to";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function isLocalHostname(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]"
+  );
 }
 
 export function isAllowedReturnTo(url: string, allowedHosts: string[]): boolean {

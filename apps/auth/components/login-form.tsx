@@ -9,6 +9,10 @@ import {
   signUpWithPassword,
 } from "@acongm/auth-client";
 import { AuthShell, SocialSignInButton } from "@/components/auth-shell";
+import {
+  AUTH_RETURN_TO_COOKIE,
+  isLocalHostname,
+} from "@/lib/utils";
 
 type AuthMode = "signin" | "signup";
 type BusyKind = "email" | "github" | "google" | null;
@@ -46,15 +50,50 @@ function formatAuthError(cause: unknown): string {
   return message;
 }
 
+function allowLocalReturnTo(): boolean {
+  if (process.env.NEXT_PUBLIC_AUTH_LOCAL === "1") return true;
+  if (typeof window === "undefined") return false;
+  return isLocalHostname(window.location.hostname);
+}
+
 function safeReturnTo(value: string | null): string | null {
   if (!value) return null;
   try {
     const url = new URL(value);
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (!allowLocalReturnTo() && isLocalHostname(url.hostname)) {
+      return null;
+    }
     return url.toString();
   } catch {
     return null;
   }
+}
+
+/** Production OAuth must use exact allow-listed callback (no query string). */
+function resolveOAuthCallbackUrl(): string {
+  if (typeof window === "undefined") {
+    return "https://auth.acongm.com/callback";
+  }
+  const host = window.location.hostname;
+  const origin =
+    host === "auth.acongm.com" || isLocalHostname(host)
+      ? window.location.origin
+      : "https://auth.acongm.com";
+  return new URL("/callback", origin).toString();
+}
+
+function persistReturnTo(returnTo: string | null) {
+  if (typeof document === "undefined") return;
+  if (!returnTo) {
+    document.cookie = `${AUTH_RETURN_TO_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+    return;
+  }
+  const secure =
+    typeof window !== "undefined" && window.location.protocol === "https:"
+      ? "; Secure"
+      : "";
+  document.cookie = `${AUTH_RETURN_TO_COOKIE}=${encodeURIComponent(returnTo)}; Path=/; Max-Age=600; SameSite=Lax${secure}`;
 }
 
 export function LoginForm() {
@@ -71,15 +110,14 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  const callbackUrl = useMemo(() => {
-    const url = new URL("/callback", window.location.origin);
-    if (returnTo) {
-      url.searchParams.set("return_to", returnTo);
-    }
-    return url.toString();
+  // Exact callback URL for Supabase allow-list; return_to kept in cookie.
+  const callbackUrl = useMemo(() => resolveOAuthCallbackUrl(), []);
+
+  useEffect(() => {
+    persistReturnTo(returnTo);
   }, [returnTo]);
 
-  const finishRedirect = (fallback = "/") => {
+  const finishRedirect = (fallback = "https://www.acongm.com") => {
     window.location.assign(returnTo || fallback);
   };
 
@@ -88,6 +126,7 @@ export function LoginForm() {
     setError(null);
     setInfo(null);
     try {
+      persistReturnTo(returnTo);
       const client = createBrowserClient();
       await signInWithOAuth(client, { provider, redirectTo: callbackUrl });
     } catch (cause) {
@@ -105,6 +144,7 @@ export function LoginForm() {
       setBusy(requestedProvider);
       setError(null);
       try {
+        persistReturnTo(returnTo);
         const client = createBrowserClient();
         await signInWithOAuth(client, {
           provider: requestedProvider,
@@ -120,7 +160,7 @@ export function LoginForm() {
     return () => {
       cancelled = true;
     };
-  }, [requestedProvider, callbackUrl]);
+  }, [requestedProvider, callbackUrl, returnTo]);
 
   async function handleEmailSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -147,6 +187,7 @@ export function LoginForm() {
         return;
       }
 
+      persistReturnTo(returnTo);
       const result = await signUpWithPassword(client, {
         email: trimmedEmail,
         password,

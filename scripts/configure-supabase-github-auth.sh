@@ -32,7 +32,10 @@ body = {
   "site_url": "https://auth.acongm.com",
   "uri_allow_list": "\n".join([
     "https://auth.acongm.com/callback",
+    "https://auth.acongm.com/callback/**",
+    "https://auth.acongm.com/**",
     "http://localhost:3100/callback",
+    "http://localhost:3100/callback/**",
     "https://www.acongm.com/**",
     "https://chat.acongm.com/**",
     "http://localhost:3000/**",

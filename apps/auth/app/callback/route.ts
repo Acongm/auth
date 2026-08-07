@@ -6,12 +6,25 @@ import {
   getAllowedReturnHosts,
   getDefaultReturnTo,
 } from "@/lib/supabase/server";
-import { sanitizeReturnTo } from "@/lib/utils";
+import { AUTH_RETURN_TO_COOKIE, sanitizeReturnTo } from "@/lib/utils";
+
+function readReturnTo(request: NextRequest): string | null {
+  const fromQuery = request.nextUrl.searchParams.get("return_to");
+  if (fromQuery) return fromQuery;
+
+  const raw = request.cookies.get(AUTH_RETURN_TO_COOKIE)?.value;
+  if (!raw) return null;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const returnTo = requestUrl.searchParams.get("return_to");
+  const returnTo = readReturnTo(request);
   const fallback = getDefaultReturnTo();
   const destination = sanitizeReturnTo(
     returnTo,
@@ -31,6 +44,11 @@ export async function GET(request: NextRequest) {
   }
 
   const response = NextResponse.redirect(destination);
+  response.cookies.set(AUTH_RETURN_TO_COOKIE, "", {
+    path: "/",
+    maxAge: 0,
+  });
+
   const supabase = createServerClient({
     supabaseUrl: supabaseEnv.supabaseUrl,
     supabaseAnonKey: supabaseEnv.supabaseAnonKey,
