@@ -3,15 +3,25 @@ import type { CookieOptions } from "@supabase/ssr";
 import { createServerClient } from "@acongm/auth-client/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
+function redirectOAuthCodeToCallback(request: NextRequest): NextResponse | null {
+  if (!request.nextUrl.searchParams.has("code")) {
+    return null;
+  }
+
+  if (request.nextUrl.pathname === "/callback") {
+    return null;
+  }
+
+  const target = request.nextUrl.clone();
+  target.pathname = "/callback";
+  return NextResponse.redirect(target);
+}
+
 export async function middleware(request: NextRequest) {
-  // Site URL misconfig often lands OAuth codes on `/` — forward to /callback.
-  if (
-    request.nextUrl.pathname === "/" &&
-    request.nextUrl.searchParams.has("code")
-  ) {
-    const target = request.nextUrl.clone();
-    target.pathname = "/callback";
-    return NextResponse.redirect(target);
+  // Site URL misconfig often lands OAuth codes on `/` or `/login` — forward to /callback.
+  const oauthRedirect = redirectOAuthCodeToCallback(request);
+  if (oauthRedirect) {
+    return oauthRedirect;
   }
 
   const supabaseEnv = getSupabasePublicEnv();

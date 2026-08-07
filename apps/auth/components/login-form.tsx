@@ -96,10 +96,22 @@ function persistReturnTo(returnTo: string | null) {
   document.cookie = `${AUTH_RETURN_TO_COOKIE}=${encodeURIComponent(returnTo)}; Path=/; Max-Age=600; SameSite=Lax${secure}`;
 }
 
+function formatCallbackError(code: string | null): string | null {
+  if (!code) return null;
+  if (code === "oauth_callback_failed") {
+    return "OAuth 回调换票失败。若浏览器曾跳到 localhost:3000，请在 Supabase Dashboard 将 Site URL 改为 https://auth.acongm.com，并添加 https://auth.acongm.com/callback 到 Redirect URLs。";
+  }
+  if (code === "supabase_not_configured") {
+    return "Auth 服务未配置 Supabase 环境变量。";
+  }
+  return `登录失败（${code}）`;
+}
+
 export function LoginForm() {
   const searchParams = useSearchParams();
   const returnTo = safeReturnTo(searchParams.get("return_to"));
   const requestedProvider = searchParams.get("provider");
+  const callbackError = formatCallbackError(searchParams.get("error"));
   const initialMode =
     searchParams.get("mode") === "signup" ? "signup" : "signin";
 
@@ -107,7 +119,7 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState<BusyKind>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(callbackError);
   const [info, setInfo] = useState<string | null>(null);
 
   // Exact callback URL for Supabase allow-list; return_to kept in cookie.
@@ -116,6 +128,12 @@ export function LoginForm() {
   useEffect(() => {
     persistReturnTo(returnTo);
   }, [returnTo]);
+
+  useEffect(() => {
+    if (callbackError) {
+      setError(callbackError);
+    }
+  }, [callbackError]);
 
   const finishRedirect = (fallback = "https://www.acongm.com") => {
     window.location.assign(returnTo || fallback);
