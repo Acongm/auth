@@ -34,12 +34,13 @@ export async function createAuthServerClient() {
 
 export function getAllowedReturnHosts(): string[] {
   const config = loadSiteConfig();
-  const hosts = new Set<string>([
-    "localhost",
-    "127.0.0.1",
-    "*.acongm.com",
-    "acongm.com",
-  ]);
+  const hosts = new Set<string>(["*.acongm.com", "acongm.com"]);
+
+  // Localhost return_to only when developing auth locally — never in production SSO.
+  if (process.env.NEXT_PUBLIC_AUTH_LOCAL === "1") {
+    hosts.add("localhost");
+    hosts.add("127.0.0.1");
+  }
 
   for (const domain of Object.values(config.domains) as string[]) {
     try {

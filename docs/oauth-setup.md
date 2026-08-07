@@ -79,15 +79,27 @@ where email = 'you@example.com';
    - 脚本：`scripts/configure-supabase-github-auth.sh`（可同时传 Google 凭证）  
 2. **GitHub OAuth App Callback**：`https://<project>.supabase.co/auth/v1/callback`
 
-### URL Configuration
+### URL Configuration（必查）
 
-- Site URL: `https://auth.acongm.com`
+> **Site URL 必须是线上 auth 域名。**  
+> 若仍为 `http://localhost:3000`，第三方登录完成后会回跳到本地。
+
+- **Site URL**: `https://auth.acongm.com`（不要用 localhost）
 - Redirect URLs:
   - `https://auth.acongm.com/callback`
-  - `https://www.acongm.com/*`
-  - `https://chat.acongm.com/*`
-  - `http://localhost:3100/callback`
+  - `https://auth.acongm.com/**`
+  - `https://www.acongm.com/**`
+  - `https://chat.acongm.com/**`
+  - `http://localhost:3100/callback`（仅本地 auth 开发）
 
+也可用脚本（需 `SUPABASE_ACCESS_TOKEN`）：
+
+```bash
+export SUPABASE_ACCESS_TOKEN=...   # https://supabase.com/dashboard/account/tokens
+./scripts/configure-supabase-github-auth.sh
+```
+
+该脚本会把 `site_url` 设为 `https://auth.acongm.com` 并写入 Redirect allow list。
 ## Vercel 部署
 
 **API 已部署后**，按 [docs/deploy-checklist.md](./docs/deploy-checklist.md) 部署本仓到 `auth.acongm.com`。
