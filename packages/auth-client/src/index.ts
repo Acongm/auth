@@ -1,6 +1,9 @@
 export {
   claimAnonymousThreads,
   createBrowserClient,
+  getAuthBaseUrl,
+  getOAuthLoginUrl,
+  isAuthConfigured,
   isSocialAuthProvider,
   signInWithGitHub,
   signInWithGoogle,
@@ -8,7 +11,7 @@ export {
   signInWithPassword,
   signOut,
   signUpWithPassword,
-} from "./client.js";
+} from './client';
 export type {
   AuthClientOptions,
   ClaimAnonymousThreadsInput,
@@ -17,6 +20,13 @@ export type {
   Session,
   SocialAuthProvider,
   User,
-} from "./client.js";
-export { createServerClient } from "./server.js";
-export type { CookieStore, ServerClientOptions } from "./server.js";
+} from './client';
+export { createServerClient } from './server';
+export type { CookieStore, ServerClientOptions } from './server';
+export { AuthAccountButton } from './AuthAccountButton';
+export type { AuthAccountButtonProps } from './AuthAccountButton';
+export {
+  useSession,
+  useUser,
+  useAuthActions,
+} from './hooks';

@@ -1,28 +1,32 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import {
   claimAnonymousThreads,
   createBrowserClient,
-  signInWithGitHub,
-  signInWithGoogle,
-  signInWithOAuth,
-  signInWithPassword,
+  getOAuthLoginUrl,
+  isAuthConfigured,
   signOut,
-  signUpWithPassword,
-  type SocialAuthProvider,
-} from "./client.js";
+} from './client';
 
 export function useSession() {
+  const configured = isAuthConfigured();
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const client = useMemo(() => createBrowserClient(), []);
+  const [loading, setLoading] = useState(configured);
+  const client = useMemo(
+    () => (configured ? createBrowserClient() : null),
+    [configured],
+  );
 
   useEffect(() => {
+    if (!client) {
+      setLoading(false);
+      return;
+    }
     let mounted = true;
 
-    void client.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
+    void client.auth.getSession().then(({ data }) => {
       if (mounted) {
         setSession(data.session);
         setLoading(false);
@@ -44,68 +48,35 @@ export function useSession() {
     };
   }, [client]);
 
-  return { session, loading, client };
+  return { session, loading, client, configured };
 }
 
 export function useUser() {
-  const { session, loading } = useSession();
+  const { session, loading, configured } = useSession();
   return {
     user: (session?.user ?? null) as User | null,
     loading,
+    configured,
   };
 }
 
 export function useAuthActions() {
-  const { client } = useSession();
+  const { client, configured } = useSession();
 
-  const loginWithOAuth = useCallback(
-    async (provider: SocialAuthProvider, redirectTo?: string) => {
-      await signInWithOAuth(client, { provider, redirectTo });
-    },
-    [client],
-  );
-
-  const loginWithGitHub = useCallback(
-    async (redirectTo?: string) => {
-      await signInWithGitHub(client, { redirectTo });
-    },
-    [client],
-  );
-
-  const loginWithGoogle = useCallback(
-    async (redirectTo?: string) => {
-      await signInWithGoogle(client, { redirectTo });
-    },
-    [client],
-  );
-
-  const loginWithPassword = useCallback(
-    async (email: string, password: string) => {
-      return signInWithPassword(client, { email, password });
-    },
-    [client],
-  );
-
-  const registerWithPassword = useCallback(
-    async (email: string, password: string, emailRedirectTo?: string) => {
-      return signUpWithPassword(client, { email, password, emailRedirectTo });
-    },
-    [client],
-  );
+  const login = useCallback((returnTo?: string) => {
+    const href =
+      typeof window !== 'undefined'
+        ? getOAuthLoginUrl({ returnTo: returnTo ?? window.location.href })
+        : getOAuthLoginUrl();
+    window.location.href = href;
+  }, []);
 
   const logout = useCallback(async () => {
+    if (!client) return;
     await signOut(client);
   }, [client]);
 
-  return {
-    loginWithOAuth,
-    loginWithGitHub,
-    loginWithGoogle,
-    loginWithPassword,
-    registerWithPassword,
-    logout,
-    client,
-  };
+  return { login, logout, client, configured };
 }
 
-export { claimAnonymousThreads };
+export { claimAnonymousThreads, getOAuthLoginUrl, isAuthConfigured };
