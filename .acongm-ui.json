@@ -1,16 +1,16 @@
 {
   "registry": "Acongm/shadcn-ui",
   "ref": "main",
-  "installRef": "c8dc482a1225840b31a66ae9fee86e87288ddd24",
+  "installRef": "8c5b4a3472e3501cab8299229a2eb6320e384118",
+  "workspace": "apps/auth",
   "items": [
     {
       "name": "ui-cn",
       "source": "registry/acongm/lib/ui-cn.ts",
       "local": "apps/auth/lib/ui-cn.ts",
-      "sourceSha": "e251600ee5ed7704fe3cd9b0eae0de2e394f991c",
-      "localSha": "d4bf8352b969bd8eb688d4e83680afdc0e0898b9",
-      "policy": "customized",
-      "note": "Auth keeps shorter local comments."
+      "sourceSha": "38ac1f3368aa52eb62945514ce418f988233f3bc",
+      "localSha": "38ac1f3368aa52eb62945514ce418f988233f3bc",
+      "policy": "managed"
     },
     {
       "name": "theme-runtime",
@@ -19,57 +19,63 @@
       "sourceSha": "ef9fc423f005013153986e8cc0674b645e8d2c2f",
       "localSha": "4991eb1acab6ea99b090e3e25355bf5cfe41f933",
       "policy": "customized",
-      "note": "Auth keeps local comment wording while preserving the shared contract."
+      "note": "Acongm platform integration remains app-local while preserving the shared theme contract."
     },
     {
       "name": "button",
       "source": "registry/acongm/ui/button.tsx",
       "local": "apps/auth/components/ui/button.tsx",
-      "sourceSha": "e1525d5b2fc17248e8a61b649d350010436571a0",
-      "localSha": "e1525d5b2fc17248e8a61b649d350010436571a0",
+      "sourceSha": "48615129cac55b68c236b1c78f55269e26ee772f",
+      "localSha": "48615129cac55b68c236b1c78f55269e26ee772f",
       "policy": "managed"
     },
     {
       "name": "alert",
       "source": "registry/acongm/ui/alert.tsx",
       "local": "apps/auth/components/ui/alert.tsx",
-      "sourceSha": "76069e50099056913c9c042647f8e7f1f1e77b3f",
-      "localSha": "76069e50099056913c9c042647f8e7f1f1e77b3f",
+      "sourceSha": "cc5505c83dc95678dbd1661632e39b7518da8bf0",
+      "localSha": "cc5505c83dc95678dbd1661632e39b7518da8bf0",
       "policy": "managed"
     },
     {
       "name": "input",
       "source": "registry/acongm/ui/input.tsx",
       "local": "apps/auth/components/ui/input.tsx",
-      "sourceSha": "832a7be4474ef081535b92995209bd877633fdd8",
-      "localSha": "832a7be4474ef081535b92995209bd877633fdd8",
+      "sourceSha": "340edcd98af9f8878270b3cd74ff9c4c284282a7",
+      "localSha": "340edcd98af9f8878270b3cd74ff9c4c284282a7",
       "policy": "managed"
     },
     {
       "name": "label",
       "source": "registry/acongm/ui/label.tsx",
       "local": "apps/auth/components/ui/label.tsx",
-      "sourceSha": "0b1d9c901accb5cc2084c5aa78d10f251c491a7f",
-      "localSha": "0b1d9c901accb5cc2084c5aa78d10f251c491a7f",
+      "sourceSha": "8f480ad4fd3ab6dad6d77023c1730a00647dd8a6",
+      "localSha": "8f480ad4fd3ab6dad6d77023c1730a00647dd8a6",
       "policy": "managed"
     },
     {
       "name": "card",
       "source": "registry/acongm/ui/card.tsx",
       "local": "apps/auth/components/ui/card.tsx",
-      "sourceSha": "e7061c94334c53049d227ae7efd4cfb06b245e00",
-      "localSha": "014a2a82ed4871b27df8420beec143b786477b51",
-      "policy": "customized",
-      "note": "Auth keeps a local Card layout variant."
+      "sourceSha": "b7861ce4547d4cb71bd40f65a9734569d0144686",
+      "localSha": "b7861ce4547d4cb71bd40f65a9734569d0144686",
+      "policy": "managed"
     },
     {
       "name": "separator",
       "source": "registry/acongm/ui/separator.tsx",
       "local": "apps/auth/components/ui/separator.tsx",
-      "sourceSha": "8fa2da50525e1f44ce232bdc4b7d434948efce9c",
-      "localSha": "c21fc09c3854a92b36731a74b3fca226f9362b4f",
-      "policy": "customized",
-      "note": "Auth keeps a locally formatted separator implementation."
+      "sourceSha": "be8aaee4417ed02c609fc404f142f4cbc0c269c3",
+      "localSha": "be8aaee4417ed02c609fc404f142f4cbc0c269c3",
+      "policy": "managed"
+    },
+    {
+      "name": "field",
+      "source": "registry/acongm/ui/field.tsx",
+      "local": "apps/auth/components/ui/field.tsx",
+      "sourceSha": "e2906288b9d8320fdc737b54bcf96992feb3ede1",
+      "localSha": "e2906288b9d8320fdc737b54bcf96992feb3ede1",
+      "policy": "managed"
     },
     {
       "name": "theme-toggle",
@@ -78,7 +84,7 @@
       "sourceSha": "e39cd5c29ee0667fec04d7c7f29b1f7110ebdb0b",
       "localSha": "e4972a2623efa6d56a2d480e280cdf4401eb906f",
       "policy": "customized",
-      "note": "Auth keeps local formatting while preserving the shared theme contract."
+      "note": "Platform recipe stays app-local; generic core primitives are managed separately."
     }
   ]
 }
