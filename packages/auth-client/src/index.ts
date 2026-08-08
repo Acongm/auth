@@ -21,6 +21,7 @@ export type {
   ClaimAnonymousThreadsInput,
   ClaimAnonymousThreadsResult,
   EmailAuthResult,
+  OAuthIntent,
   OAuthStartMode,
   Session,
   SocialAuthProvider,
