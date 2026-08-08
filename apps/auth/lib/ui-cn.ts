@@ -1,6 +1,6 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+export type ClassValue = string | false | null | undefined;
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+/** Dependency-free className joiner for lightweight Acongm UI primitives. */
+export function cn(...inputs: ClassValue[]): string {
+  return inputs.filter(Boolean).join(" ");
 }
