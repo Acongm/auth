@@ -52,12 +52,27 @@ function getCookieDomain(): string | undefined {
   return process.env.NEXT_PUBLIC_AUTH_COOKIE_DOMAIN ?? '.acongm.com';
 }
 
+function providerLabel(provider: string): string {
+  if (provider === 'google') return 'Google';
+  if (provider === 'github') return 'GitHub';
+  return provider;
+}
+
 function formatProviderError(provider: string, message: string): Error {
+  const label = providerLabel(provider);
   if (/provider is not enabled/i.test(message)) {
-    const label =
-      provider === 'google' ? 'Google' : provider === 'github' ? 'GitHub' : provider;
     return new Error(
       `${label} 登录未启用：请在 Supabase Dashboard → Authentication → Providers → ${label} 开启，并填写 Client ID / Secret。`,
+    );
+  }
+  if (/manual linking.*disabled|identity linking.*disabled|manual identity linking/i.test(message)) {
+    return new Error(
+      '访客账号升级尚未启用：需要先在 Supabase Authentication 中开启 Manual Linking。当前访客会话不会被自动切换或丢弃。',
+    );
+  }
+  if (/identity.*already.*exists|already.*linked|identity.*taken/i.test(message)) {
+    return new Error(
+      '该第三方身份已经属于另一个账号。当前访客会话不会自动合并到已有账号；请先完成显式的数据合并策略。',
     );
   }
   return new Error(message || `${provider} OAuth failed`);
@@ -85,6 +100,16 @@ export function createBrowserClient(options?: Partial<AuthClientOptions>) {
   });
 }
 
+export function isAnonymousUser(user: User | null | undefined): boolean {
+  return Boolean(user?.is_anonymous);
+}
+
+export function isAnonymousSession(
+  session: Session | null | undefined,
+): boolean {
+  return isAnonymousUser(session?.user);
+}
+
 export function isSocialAuthProvider(
   value: string,
 ): value is SocialAuthProvider {
@@ -104,6 +129,52 @@ export async function signInWithOAuth(
   if (error) {
     throw formatProviderError(options.provider, error.message);
   }
+}
+
+export async function linkOAuthIdentity(
+  client: ReturnType<typeof createBrowserClient>,
+  options: { provider: SocialAuthProvider; redirectTo?: string },
+): Promise<void> {
+  const { error } = await client.auth.linkIdentity({
+    provider: options.provider as Provider,
+    options: {
+      redirectTo: options.redirectTo,
+    },
+  });
+  if (error) {
+    throw formatProviderError(options.provider, error.message);
+  }
+}
+
+export type OAuthStartMode = 'sign-in' | 'link-anonymous';
+
+/**
+ * Start social auth without silently replacing an anonymous Supabase user.
+ *
+ * Anonymous users already own rows through `auth.uid()`. For them, OAuth must
+ * link an identity to the existing user so the UUID remains stable. A normal
+ * signed-out/permanent-user flow continues to use ordinary OAuth sign-in.
+ */
+export async function startOAuthFlow(
+  client: ReturnType<typeof createBrowserClient>,
+  options: { provider: SocialAuthProvider; redirectTo?: string },
+): Promise<OAuthStartMode> {
+  const {
+    data: { session },
+    error: sessionError,
+  } = await client.auth.getSession();
+
+  if (sessionError) {
+    throw new Error(sessionError.message || '无法读取当前登录状态');
+  }
+
+  if (isAnonymousSession(session)) {
+    await linkOAuthIdentity(client, options);
+    return 'link-anonymous';
+  }
+
+  await signInWithOAuth(client, options);
+  return 'sign-in';
 }
 
 export async function signInWithGitHub(
@@ -190,6 +261,7 @@ export interface ClaimAnonymousThreadsResult {
   threadIds?: string[];
 }
 
+/** @deprecated Legacy thread migration only. New Chat v2 uses Supabase auth.uid(). */
 export async function claimAnonymousThreads(
   input: ClaimAnonymousThreadsInput,
 ): Promise<ClaimAnonymousThreadsResult> {
