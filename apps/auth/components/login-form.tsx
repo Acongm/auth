@@ -103,7 +103,12 @@ function persistReturnTo(returnTo: string | null) {
   document.cookie = `${AUTH_RETURN_TO_COOKIE}=${encodeURIComponent(returnTo)}; Path=/; Max-Age=600; SameSite=Lax${secure}`;
 }
 
-async function protectAnonymousEmailIdentity(
+/**
+ * Email-based same-uid anonymous upgrade requires email confirmation followed by
+ * password setup. Until #27 owns that full lifecycle, block only SIGNUP from an
+ * anonymous session. Existing-account SIGNIN remains an explicit identity switch.
+ */
+async function protectAnonymousEmailSignup(
   client: ReturnType<typeof createBrowserClient>,
 ) {
   const {
@@ -115,7 +120,7 @@ async function protectAnonymousEmailIdentity(
   }
   if (isAnonymousSession(session)) {
     throw new Error(
-      "当前访客会话已经拥有独立身份和数据。为避免切换 auth.uid() 后聊天记录消失，邮箱登录/注册暂不直接切换账号；请使用 Google / GitHub 将当前访客原地升级，已有邮箱账号合并将在显式合并流程中处理。",
+      "当前访客会话已经拥有独立身份和聊天数据。邮箱注册的同 UID 升级需要先完成邮箱确认与设密闭环，暂由 Auth #27 实现；现在可使用 Google / GitHub 注册来保留当前访客会话，或切换到“登录”进入已有邮箱账号（不会自动合并匿名聊天）。",
     );
   }
 }
@@ -151,7 +156,11 @@ export function LoginForm() {
     try {
       persistReturnTo(returnTo);
       const client = createBrowserClient();
-      await startOAuthFlow(client, { provider, redirectTo: callbackUrl });
+      await startOAuthFlow(client, {
+        provider,
+        redirectTo: callbackUrl,
+        intent: mode === "signup" ? "sign-up" : "sign-in",
+      });
     } catch (cause) {
       setError(formatAuthError(cause));
       setBusy(null);
@@ -172,6 +181,7 @@ export function LoginForm() {
         await startOAuthFlow(client, {
           provider: requestedProvider,
           redirectTo: callbackUrl,
+          intent: mode === "signup" ? "sign-up" : "sign-in",
         });
       } catch (cause) {
         if (!cancelled) {
@@ -183,7 +193,7 @@ export function LoginForm() {
     return () => {
       cancelled = true;
     };
-  }, [requestedProvider, callbackUrl, returnTo]);
+  }, [requestedProvider, callbackUrl, returnTo, mode]);
 
   async function handleEmailSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -200,9 +210,10 @@ export function LoginForm() {
 
     try {
       const client = createBrowserClient();
-      await protectAnonymousEmailIdentity(client);
 
       if (mode === "signin") {
+        // Existing-account login is an explicit identity switch. Chat consumers
+        // key durable state by auth.uid() and clear active/cache on UID change.
         await signInWithPassword(client, {
           email: trimmedEmail,
           password,
@@ -211,6 +222,8 @@ export function LoginForm() {
         return;
       }
 
+      // Do not silently replace an anonymous UID during account creation.
+      await protectAnonymousEmailSignup(client);
       persistReturnTo(returnTo);
       const result = await signUpWithPassword(client, {
         email: trimmedEmail,
@@ -245,7 +258,9 @@ export function LoginForm() {
             {mode === "signin" ? "登录到 Acongm" : "注册 Acongm 账号"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            支持邮箱密码，以及 Google / GitHub。登录成功后将返回来源站点。
+            {mode === "signin"
+              ? "登录已有账号会切换 auth.uid()；访客聊天不会静默合并到另一个账号。"
+              : "从 Chat 访客会话进入时，Google / GitHub 注册会绑定到当前匿名身份并保留 auth.uid()。"}
           </p>
         </div>
 
