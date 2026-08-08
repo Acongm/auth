@@ -1,90 +1,18 @@
 {
   "registry": "Acongm/shadcn-ui",
   "ref": "main",
-  "installRef": "8c5b4a3472e3501cab8299229a2eb6320e384118",
+  "installRef": "c4dbd6d7ae129bef36f6ae43dc0e8050e54927d1",
   "workspace": "apps/auth",
   "items": [
-    {
-      "name": "ui-cn",
-      "source": "registry/acongm/lib/ui-cn.ts",
-      "local": "apps/auth/lib/ui-cn.ts",
-      "sourceSha": "38ac1f3368aa52eb62945514ce418f988233f3bc",
-      "localSha": "38ac1f3368aa52eb62945514ce418f988233f3bc",
-      "policy": "managed"
-    },
-    {
-      "name": "theme-runtime",
-      "source": "registry/acongm/lib/theme.ts",
-      "local": "apps/auth/lib/theme.ts",
-      "sourceSha": "ef9fc423f005013153986e8cc0674b645e8d2c2f",
-      "localSha": "4991eb1acab6ea99b090e3e25355bf5cfe41f933",
-      "policy": "customized",
-      "note": "Acongm platform integration remains app-local while preserving the shared theme contract."
-    },
-    {
-      "name": "button",
-      "source": "registry/acongm/ui/button.tsx",
-      "local": "apps/auth/components/ui/button.tsx",
-      "sourceSha": "48615129cac55b68c236b1c78f55269e26ee772f",
-      "localSha": "48615129cac55b68c236b1c78f55269e26ee772f",
-      "policy": "managed"
-    },
-    {
-      "name": "alert",
-      "source": "registry/acongm/ui/alert.tsx",
-      "local": "apps/auth/components/ui/alert.tsx",
-      "sourceSha": "cc5505c83dc95678dbd1661632e39b7518da8bf0",
-      "localSha": "cc5505c83dc95678dbd1661632e39b7518da8bf0",
-      "policy": "managed"
-    },
-    {
-      "name": "input",
-      "source": "registry/acongm/ui/input.tsx",
-      "local": "apps/auth/components/ui/input.tsx",
-      "sourceSha": "340edcd98af9f8878270b3cd74ff9c4c284282a7",
-      "localSha": "340edcd98af9f8878270b3cd74ff9c4c284282a7",
-      "policy": "managed"
-    },
-    {
-      "name": "label",
-      "source": "registry/acongm/ui/label.tsx",
-      "local": "apps/auth/components/ui/label.tsx",
-      "sourceSha": "8f480ad4fd3ab6dad6d77023c1730a00647dd8a6",
-      "localSha": "8f480ad4fd3ab6dad6d77023c1730a00647dd8a6",
-      "policy": "managed"
-    },
-    {
-      "name": "card",
-      "source": "registry/acongm/ui/card.tsx",
-      "local": "apps/auth/components/ui/card.tsx",
-      "sourceSha": "b7861ce4547d4cb71bd40f65a9734569d0144686",
-      "localSha": "b7861ce4547d4cb71bd40f65a9734569d0144686",
-      "policy": "managed"
-    },
-    {
-      "name": "separator",
-      "source": "registry/acongm/ui/separator.tsx",
-      "local": "apps/auth/components/ui/separator.tsx",
-      "sourceSha": "be8aaee4417ed02c609fc404f142f4cbc0c269c3",
-      "localSha": "be8aaee4417ed02c609fc404f142f4cbc0c269c3",
-      "policy": "managed"
-    },
-    {
-      "name": "field",
-      "source": "registry/acongm/ui/field.tsx",
-      "local": "apps/auth/components/ui/field.tsx",
-      "sourceSha": "e2906288b9d8320fdc737b54bcf96992feb3ede1",
-      "localSha": "e2906288b9d8320fdc737b54bcf96992feb3ede1",
-      "policy": "managed"
-    },
-    {
-      "name": "theme-toggle",
-      "source": "registry/acongm/ui/theme-toggle.tsx",
-      "local": "apps/auth/components/ui/theme-toggle.tsx",
-      "sourceSha": "e39cd5c29ee0667fec04d7c7f29b1f7110ebdb0b",
-      "localSha": "e4972a2623efa6d56a2d480e280cdf4401eb906f",
-      "policy": "customized",
-      "note": "Platform recipe stays app-local; generic core primitives are managed separately."
-    }
+    {"name":"ui-cn","source":"registry/acongm/lib/ui-cn.ts","local":"apps/auth/lib/ui-cn.ts","sourceSha":"38ac1f3368aa52eb62945514ce418f988233f3bc","localSha":"38ac1f3368aa52eb62945514ce418f988233f3bc","policy":"managed"},
+    {"name":"theme-runtime","source":"registry/acongm/lib/theme.ts","local":"apps/auth/lib/theme.ts","sourceSha":"ef9fc423f005013153986e8cc0674b645e8d2c2f","localSha":"4991eb1acab6ea99b090e3e25355bf5cfe41f933","policy":"customized","note":"Acongm platform integration remains app-local while preserving the shared theme contract."},
+    {"name":"button","source":"registry/acongm/ui/button.tsx","local":"apps/auth/components/ui/button.tsx","sourceSha":"48615129cac55b68c236b1c78f55269e26ee772f","localSha":"48615129cac55b68c236b1c78f55269e26ee772f","policy":"managed"},
+    {"name":"alert","source":"registry/acongm/ui/alert.tsx","local":"apps/auth/components/ui/alert.tsx","sourceSha":"cc5505c83dc95678dbd1661632e39b7518da8bf0","localSha":"cc5505c83dc95678dbd1661632e39b7518da8bf0","policy":"managed"},
+    {"name":"input","source":"registry/acongm/ui/input.tsx","local":"apps/auth/components/ui/input.tsx","sourceSha":"340edcd98af9f8878270b3cd74ff9c4c284282a7","localSha":"340edcd98af9f8878270b3cd74ff9c4c284282a7","policy":"managed"},
+    {"name":"label","source":"registry/acongm/ui/label.tsx","local":"apps/auth/components/ui/label.tsx","sourceSha":"8f480ad4fd3ab6dad6d77023c1730a00647dd8a6","localSha":"8f480ad4fd3ab6dad6d77023c1730a00647dd8a6","policy":"managed"},
+    {"name":"card","source":"registry/acongm/ui/card.tsx","local":"apps/auth/components/ui/card.tsx","sourceSha":"b7861ce4547d4cb71bd40f65a9734569d0144686","localSha":"b7861ce4547d4cb71bd40f65a9734569d0144686","policy":"managed"},
+    {"name":"separator","source":"registry/acongm/ui/separator.tsx","local":"apps/auth/components/ui/separator.tsx","sourceSha":"be8aaee4417ed02c609fc404f142f4cbc0c269c3","localSha":"be8aaee4417ed02c609fc404f142f4cbc0c269c3","policy":"managed"},
+    {"name":"field","source":"registry/acongm/ui/field.tsx","local":"apps/auth/components/ui/field.tsx","sourceSha":"e2906288b9d8320fdc737b54bcf96992feb3ede1","localSha":"e2906288b9d8320fdc737b54bcf96992feb3ede1","policy":"managed"},
+    {"name":"theme-toggle","source":"registry/acongm/ui/theme-toggle.tsx","local":"apps/auth/components/ui/theme-toggle.tsx","sourceSha":"e39cd5c29ee0667fec04d7c7f29b1f7110ebdb0b","localSha":"e4972a2623efa6d56a2d480e280cdf4401eb906f","policy":"customized","note":"Platform recipe stays app-local; generic core primitives are managed separately."}
   ]
 }
