@@ -1,0 +1,48 @@
+name: Sync hardened UI core
+
+on:
+  push:
+    branches:
+      - agent/ui-core-hardening-sync
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/ui-core-hardening-sync
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.3
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install current workspace
+        run: pnpm install --frozen-lockfile
+      - name: Sync reviewed core primitives from Registry
+        run: |
+          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/ui-cn --yes --overwrite
+          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/button --yes --overwrite
+          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/input --yes --overwrite
+          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/label --yes --overwrite
+          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/card --yes --overwrite
+          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/alert --yes --overwrite
+          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/separator --yes --overwrite
+          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/field --yes --overwrite
+      - name: Commit generated source and lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/auth/package.json apps/auth/lib/ui-cn.ts apps/auth/components/ui/button.tsx apps/auth/components/ui/input.tsx apps/auth/components/ui/label.tsx apps/auth/components/ui/card.tsx apps/auth/components/ui/alert.tsx apps/auth/components/ui/separator.tsx apps/auth/components/ui/field.tsx pnpm-lock.yaml
+          if git diff --cached --quiet; then
+            echo "No generated changes"
+            exit 0
+          fi
+          git commit -m "refactor(ui): sync hardened core primitives"
+          git push origin HEAD:agent/ui-core-hardening-sync
