@@ -72,7 +72,7 @@ function formatProviderError(provider: string, message: string): Error {
   }
   if (/identity.*already.*exists|already.*linked|identity.*taken/i.test(message)) {
     return new Error(
-      '该第三方身份已经属于另一个账号。当前访客会话不会自动合并到已有账号；请先完成显式的数据合并策略。',
+      '该第三方身份已经属于另一个账号。当前访客会话不会自动合并到已有账号；请切换到“登录”进入已有账号，或等待显式数据合并能力。',
     );
   }
   return new Error(message || `${provider} OAuth failed`);
@@ -146,18 +146,28 @@ export async function linkOAuthIdentity(
   }
 }
 
+export type OAuthIntent = 'sign-in' | 'sign-up';
 export type OAuthStartMode = 'sign-in' | 'link-anonymous';
 
 /**
- * Start social auth without silently replacing an anonymous Supabase user.
+ * Start social auth with an explicit product intent.
  *
- * Anonymous users already own rows through `auth.uid()`. For them, OAuth must
- * link an identity to the existing user so the UUID remains stable. A normal
- * signed-out/permanent-user flow continues to use ordinary OAuth sign-in.
+ * - sign-up + anonymous session: link identity to preserve auth.uid() and all
+ *   RLS-owned application data.
+ * - sign-in: always enter the selected existing account through ordinary OAuth,
+ *   even when the browser currently owns an anonymous session. The consumer is
+ *   responsible for treating the changed auth.uid() as an explicit identity
+ *   switch; no legacy x-client-id claim or silent data merge is allowed.
+ * - sign-up without an anonymous session: ordinary OAuth creates/signs into the
+ *   provider-backed account as usual.
  */
 export async function startOAuthFlow(
   client: ReturnType<typeof createBrowserClient>,
-  options: { provider: SocialAuthProvider; redirectTo?: string },
+  options: {
+    provider: SocialAuthProvider;
+    redirectTo?: string;
+    intent?: OAuthIntent;
+  },
 ): Promise<OAuthStartMode> {
   const {
     data: { session },
@@ -168,12 +178,17 @@ export async function startOAuthFlow(
     throw new Error(sessionError.message || '无法读取当前登录状态');
   }
 
-  if (isAnonymousSession(session)) {
-    await linkOAuthIdentity(client, options);
+  const authOptions = {
+    provider: options.provider,
+    redirectTo: options.redirectTo,
+  };
+
+  if (options.intent === 'sign-up' && isAnonymousSession(session)) {
+    await linkOAuthIdentity(client, authOptions);
     return 'link-anonymous';
   }
 
-  await signInWithOAuth(client, options);
+  await signInWithOAuth(client, authOptions);
   return 'sign-in';
 }
 
