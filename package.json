@@ -4,8 +4,8 @@
   "packageManager": "pnpm@10.33.3",
   "scripts": {
     "dev": "pnpm --filter @acongm/auth-app dev",
-    "build": "pnpm --filter @acongm/config build && pnpm --filter @acongm/auth-client build && pnpm --filter @acongm/auth-app build",
-    "typecheck": "pnpm --filter @acongm/config build && pnpm --filter @acongm/auth-client build && pnpm -r typecheck",
+    "build": "pnpm --filter @acongm/config build && pnpm --filter @acongm/auth-client types:check && pnpm --filter @acongm/auth-app build",
+    "typecheck": "pnpm --filter @acongm/config build && pnpm --filter @acongm/auth-client types:check && pnpm -r typecheck",
     "lint": "pnpm --filter @acongm/auth-app lint"
   },
   "engines": {

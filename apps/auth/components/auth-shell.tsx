@@ -1,5 +1,5 @@
 import { Github } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type AuthShellProps = {
   title: string;
@@ -11,22 +11,22 @@ export function AuthShell({ title, description, children }: AuthShellProps) {
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-blue-300">
+        <section className="rounded-xl border border-border bg-card/70 p-8 text-card-foreground shadow-sm backdrop-blur">
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
             Platform v2 SSO
           </p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight">{title}</h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
+          <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
             {description}
           </p>
-          <ul className="mt-8 space-y-3 text-sm text-slate-300">
+          <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
             <li>• 邮箱账号或第三方 OAuth 统一登录</li>
             <li>• `.acongm.com` 共享 Supabase Session Cookie</li>
             <li>• portal / chat / API 通过 JWT 统一鉴权</li>
           </ul>
         </section>
 
-        <section className="rounded-3xl border border-white/10 bg-[#0b1220] p-8 shadow-2xl shadow-blue-950/30">
+        <section className="rounded-xl border border-border bg-card p-8 text-card-foreground shadow-2xl">
           {children}
         </section>
       </div>
@@ -73,23 +73,21 @@ export function SocialSignInButton({
   disabled,
   onClick,
 }: SocialSignInButtonProps) {
-  const className = cn(
-    "inline-flex w-full items-center justify-center gap-3 rounded-2xl px-5 py-3.5 text-base font-medium transition",
-    provider === "github"
-      ? "bg-white text-slate-900 hover:bg-slate-100"
-      : "border border-white/15 bg-white/5 text-white hover:bg-white/10",
-    disabled && "cursor-not-allowed opacity-60",
-  );
-
   return (
-    <button className={className} disabled={disabled} onClick={onClick} type="button">
+    <Button
+      className="w-full gap-3"
+      disabled={disabled}
+      onClick={onClick}
+      size="lg"
+      variant={provider === "github" ? "secondary" : "outline"}
+    >
       {provider === "github" ? (
         <Github className="h-5 w-5" />
       ) : (
         <GoogleIcon className="h-5 w-5" />
       )}
       {PROVIDER_LABEL[provider]}
-    </button>
+    </Button>
   );
 }
 

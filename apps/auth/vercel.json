@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "cd ../.. && pnpm install",
-  "buildCommand": "cd ../.. && pnpm --filter @acongm/config build && pnpm --filter @acongm/auth-client build && pnpm --filter @acongm/auth-app build",
+  "buildCommand": "cd ../.. && pnpm --filter @acongm/config build && pnpm --filter @acongm/auth-client types:check && pnpm --filter @acongm/auth-app build",
   "devCommand": "pnpm dev",
   "outputDirectory": ".next",
   "regions": ["hkg1"],
