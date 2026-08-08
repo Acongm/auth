@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   createBrowserClient,
-  signInWithOAuth,
+  isAnonymousSession,
   signInWithPassword,
   signUpWithPassword,
+  startOAuthFlow,
 } from "@acongm/auth-client";
 import { AuthShell, SocialSignInButton } from "@/components/auth-shell";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -102,6 +103,23 @@ function persistReturnTo(returnTo: string | null) {
   document.cookie = `${AUTH_RETURN_TO_COOKIE}=${encodeURIComponent(returnTo)}; Path=/; Max-Age=600; SameSite=Lax${secure}`;
 }
 
+async function protectAnonymousEmailIdentity(
+  client: ReturnType<typeof createBrowserClient>,
+) {
+  const {
+    data: { session },
+    error,
+  } = await client.auth.getSession();
+  if (error) {
+    throw new Error(error.message || "无法读取当前登录状态");
+  }
+  if (isAnonymousSession(session)) {
+    throw new Error(
+      "当前访客会话已经拥有独立身份和数据。为避免切换 auth.uid() 后聊天记录消失，邮箱登录/注册暂不直接切换账号；请使用 Google / GitHub 将当前访客原地升级，已有邮箱账号合并将在显式合并流程中处理。",
+    );
+  }
+}
+
 export function LoginForm() {
   const searchParams = useSearchParams();
   const returnTo = safeReturnTo(searchParams.get("return_to"));
@@ -133,7 +151,7 @@ export function LoginForm() {
     try {
       persistReturnTo(returnTo);
       const client = createBrowserClient();
-      await signInWithOAuth(client, { provider, redirectTo: callbackUrl });
+      await startOAuthFlow(client, { provider, redirectTo: callbackUrl });
     } catch (cause) {
       setError(formatAuthError(cause));
       setBusy(null);
@@ -151,7 +169,7 @@ export function LoginForm() {
       try {
         persistReturnTo(returnTo);
         const client = createBrowserClient();
-        await signInWithOAuth(client, {
+        await startOAuthFlow(client, {
           provider: requestedProvider,
           redirectTo: callbackUrl,
         });
@@ -182,6 +200,7 @@ export function LoginForm() {
 
     try {
       const client = createBrowserClient();
+      await protectAnonymousEmailIdentity(client);
 
       if (mode === "signin") {
         await signInWithPassword(client, {
