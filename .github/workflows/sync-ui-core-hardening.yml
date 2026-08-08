@@ -27,14 +27,14 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Sync reviewed core primitives from Registry
         run: |
-          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/ui-cn --yes --overwrite
-          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/button --yes --overwrite
-          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/input --yes --overwrite
-          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/label --yes --overwrite
-          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/card --yes --overwrite
-          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/alert --yes --overwrite
-          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/separator --yes --overwrite
-          pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/field --yes --overwrite
+          pnpm dlx shadcn@latest add Acongm/shadcn-ui/ui-cn -c apps/auth --yes --overwrite
+          pnpm dlx shadcn@latest add Acongm/shadcn-ui/button -c apps/auth --yes --overwrite
+          pnpm dlx shadcn@latest add Acongm/shadcn-ui/input -c apps/auth --yes --overwrite
+          pnpm dlx shadcn@latest add Acongm/shadcn-ui/label -c apps/auth --yes --overwrite
+          pnpm dlx shadcn@latest add Acongm/shadcn-ui/card -c apps/auth --yes --overwrite
+          pnpm dlx shadcn@latest add Acongm/shadcn-ui/alert -c apps/auth --yes --overwrite
+          pnpm dlx shadcn@latest add Acongm/shadcn-ui/separator -c apps/auth --yes --overwrite
+          pnpm dlx shadcn@latest add Acongm/shadcn-ui/field -c apps/auth --yes --overwrite
       - name: Commit generated source and lockfile
         run: |
           git config user.name "github-actions[bot]"
