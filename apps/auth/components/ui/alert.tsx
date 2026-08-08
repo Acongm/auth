@@ -1,47 +1,56 @@
-import type { HTMLAttributes } from "react";
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+
 import { cn } from "@/lib/ui-cn";
 
-export type AlertVariant = "default" | "success" | "destructive";
+const alertVariants = cva(
+  "relative grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 rounded-lg border px-4 py-3 text-sm has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] has-[>svg]:gap-x-3",
+  {
+    variants: {
+      variant: {
+        default: "border-border bg-card text-card-foreground",
+        destructive:
+          "border-destructive/35 bg-destructive/10 text-destructive [&_[data-slot=alert-description]]:text-destructive/90",
+      },
+    },
+    defaultVariants: { variant: "default" },
+  },
+);
 
-export type AlertProps = HTMLAttributes<HTMLDivElement> & {
-  variant?: AlertVariant;
-};
+export type AlertProps = React.ComponentProps<"div"> & VariantProps<typeof alertVariants>;
 
-const variants: Record<AlertVariant, string> = {
-  default: "border-border bg-card text-card-foreground",
-  success:
-    "border-primary/30 bg-primary/10 text-foreground [&_[data-slot=alert-description]]:text-foreground/80",
-  destructive:
-    "border-destructive/35 bg-destructive/10 text-destructive [&_[data-slot=alert-description]]:text-destructive",
-};
+export function Alert({ className, variant, ...props }: AlertProps) {
+  return <div data-slot="alert" role="alert" className={cn(alertVariants({ variant }), className)} {...props} />;
+}
 
-export function Alert({ className, variant = "default", ...props }: AlertProps) {
+export function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      role="alert"
-      data-slot="alert"
-      className={cn("relative w-full rounded-lg border px-4 py-3 text-sm", variants[variant], className)}
-      {...props}
-    />
-  );
-}
-
-export function AlertTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
-  return (
-    <h5
       data-slot="alert-title"
-      className={cn("mb-1 font-medium leading-none", className)}
+      className={cn("col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight", className)}
       {...props}
     />
   );
 }
 
-export function AlertDescription({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
+export function AlertDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <p
+    <div
       data-slot="alert-description"
-      className={cn("text-sm leading-5 text-muted-foreground", className)}
+      className={cn("col-start-2 grid justify-items-start gap-1 text-sm text-muted-foreground [&_p]:leading-relaxed", className)}
       {...props}
     />
   );
 }
+
+export function AlertAction({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="alert-action"
+      className={cn("col-start-2 row-start-1 self-start justify-self-end", className)}
+      {...props}
+    />
+  );
+}
+
+export { alertVariants };
