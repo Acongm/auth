@@ -9,7 +9,9 @@
     "lint": "pnpm --filter @acongm/auth-app lint",
     "ui:list": "pnpm dlx shadcn@latest list Acongm/shadcn-ui",
     "ui:view": "pnpm dlx shadcn@latest view Acongm/shadcn-ui/core-ui",
-    "ui:add": "pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/core-ui"
+    "ui:add": "pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/core-ui",
+    "ui:diff": "pnpm -C apps/auth dlx shadcn@latest add Acongm/shadcn-ui/core-ui --dry-run --diff",
+    "ui:drift": "node scripts/check-ui-drift.mjs"
   },
   "engines": {
     "node": ">=20"
