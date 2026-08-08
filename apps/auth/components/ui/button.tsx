@@ -1,8 +1,14 @@
 import type { ButtonHTMLAttributes } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/ui-cn";
 
-type ButtonVariant = "default" | "secondary" | "outline" | "ghost" | "destructive";
-type ButtonSize = "sm" | "default" | "lg" | "icon";
+export type ButtonVariant =
+  | "default"
+  | "secondary"
+  | "outline"
+  | "ghost"
+  | "destructive";
+
+export type ButtonSize = "sm" | "default" | "lg" | "icon";
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
@@ -11,12 +17,10 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   default: "bg-primary text-primary-foreground hover:bg-primary/90",
-  secondary:
-    "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+  secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
   outline:
     "border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground",
-  ghost:
-    "text-foreground hover:bg-accent hover:text-accent-foreground",
+  ghost: "text-foreground hover:bg-accent hover:text-accent-foreground",
   destructive:
     "bg-destructive text-destructive-foreground hover:bg-destructive/90",
 };
@@ -37,6 +41,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
+      data-slot="button"
       type={type}
       className={cn(
         "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors outline-none",

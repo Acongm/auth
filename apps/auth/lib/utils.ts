@@ -1,11 +1,6 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+export { cn } from "./ui-cn";
 
 export const AUTH_RETURN_TO_COOKIE = "acongm_auth_return_to";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 export function isLocalHostname(hostname: string): boolean {
   return (
