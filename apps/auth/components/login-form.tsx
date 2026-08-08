@@ -12,9 +12,8 @@ import { AuthShell, SocialSignInButton } from "@/components/auth-shell";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Field, FieldLabel, FieldSeparator } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import {
   AUTH_RETURN_TO_COOKIE,
   cn,
@@ -271,10 +270,13 @@ export function LoginForm() {
         </div>
 
         <form className="space-y-4" onSubmit={handleEmailSubmit}>
-          <div className="space-y-1.5">
-            <Label htmlFor="auth-email" className="text-xs uppercase tracking-wide text-muted-foreground">
+          <Field className="gap-1.5">
+            <FieldLabel
+              htmlFor="auth-email"
+              className="text-xs uppercase tracking-wide text-muted-foreground"
+            >
               邮箱
-            </Label>
+            </FieldLabel>
             <Input
               id="auth-email"
               type="email"
@@ -286,11 +288,14 @@ export function LoginForm() {
               placeholder="you@example.com"
               disabled={loading}
             />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="auth-password" className="text-xs uppercase tracking-wide text-muted-foreground">
+          </Field>
+          <Field className="gap-1.5">
+            <FieldLabel
+              htmlFor="auth-password"
+              className="text-xs uppercase tracking-wide text-muted-foreground"
+            >
               密码
-            </Label>
+            </FieldLabel>
             <Input
               id="auth-password"
               type="password"
@@ -303,7 +308,7 @@ export function LoginForm() {
               placeholder="至少 6 位"
               disabled={loading}
             />
-          </div>
+          </Field>
           <Button type="submit" size="lg" disabled={loading} className="w-full">
             {busy === "email"
               ? mode === "signin"
@@ -315,11 +320,7 @@ export function LoginForm() {
           </Button>
         </form>
 
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="flex-1"><Separator /></div>
-          <span>或使用第三方</span>
-          <div className="flex-1"><Separator /></div>
-        </div>
+        <FieldSeparator>或使用第三方</FieldSeparator>
 
         <div className="space-y-3">
           <SocialSignInButton
@@ -346,7 +347,7 @@ export function LoginForm() {
         ) : null}
 
         {info ? (
-          <Alert variant="success">
+          <Alert>
             <AlertDescription>{info}</AlertDescription>
           </Alert>
         ) : null}
