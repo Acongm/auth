@@ -9,8 +9,12 @@ import {
   signUpWithPassword,
 } from "@acongm/auth-client";
 import { AuthShell, SocialSignInButton } from "@/components/auth-shell";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
   AUTH_RETURN_TO_COOKIE,
   cn,
@@ -113,7 +117,6 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  // Exact callback URL for Supabase allow-list; return_to kept in cookie.
   const callbackUrl = useMemo(() => resolveOAuthCallbackUrl(), []);
 
   useEffect(() => {
@@ -267,12 +270,13 @@ export function LoginForm() {
           </Button>
         </div>
 
-        <form className="space-y-3" onSubmit={handleEmailSubmit}>
-          <label className="block space-y-1.5">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <form className="space-y-4" onSubmit={handleEmailSubmit}>
+          <div className="space-y-1.5">
+            <Label htmlFor="auth-email" className="text-xs uppercase tracking-wide text-muted-foreground">
               邮箱
-            </span>
+            </Label>
             <Input
+              id="auth-email"
               type="email"
               autoComplete="email"
               required
@@ -282,12 +286,13 @@ export function LoginForm() {
               placeholder="you@example.com"
               disabled={loading}
             />
-          </label>
-          <label className="block space-y-1.5">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="auth-password" className="text-xs uppercase tracking-wide text-muted-foreground">
               密码
-            </span>
+            </Label>
             <Input
+              id="auth-password"
               type="password"
               autoComplete={mode === "signin" ? "current-password" : "new-password"}
               required
@@ -298,13 +303,8 @@ export function LoginForm() {
               placeholder="至少 6 位"
               disabled={loading}
             />
-          </label>
-          <Button
-            type="submit"
-            size="lg"
-            disabled={loading}
-            className="w-full"
-          >
+          </div>
+          <Button type="submit" size="lg" disabled={loading} className="w-full">
             {busy === "email"
               ? mode === "signin"
                 ? "登录中…"
@@ -316,9 +316,9 @@ export function LoginForm() {
         </form>
 
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="h-px flex-1 bg-border" />
-          或使用第三方
-          <span className="h-px flex-1 bg-border" />
+          <div className="flex-1"><Separator /></div>
+          <span>或使用第三方</span>
+          <div className="flex-1"><Separator /></div>
         </div>
 
         <div className="space-y-3">
@@ -339,22 +339,22 @@ export function LoginForm() {
         </div>
 
         {returnTo ? (
-          <p className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+          <Card className="bg-muted/50 px-4 py-3 text-sm text-muted-foreground shadow-none">
             登录后返回：
             <span className="mt-1 block break-all text-primary">{returnTo}</span>
-          </p>
+          </Card>
         ) : null}
 
         {info ? (
-          <p className="rounded-lg border border-primary/30 bg-accent px-4 py-3 text-sm text-accent-foreground">
-            {info}
-          </p>
+          <Alert variant="success">
+            <AlertDescription>{info}</AlertDescription>
+          </Alert>
         ) : null}
 
         {error ? (
-          <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error}
-          </p>
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         ) : null}
 
         <p className="text-xs leading-5 text-muted-foreground">

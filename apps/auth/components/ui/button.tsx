@@ -10,6 +10,12 @@ export type ButtonVariant =
 
 export type ButtonSize = "sm" | "default" | "lg" | "icon";
 
+export type ButtonStyleOptions = {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  className?: string;
+};
+
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -32,6 +38,21 @@ const sizeClasses: Record<ButtonSize, string> = {
   icon: "size-10 rounded-md",
 };
 
+export function buttonVariants({
+  variant = "default",
+  size = "default",
+  className,
+}: ButtonStyleOptions = {}): string {
+  return cn(
+    "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors outline-none",
+    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+    "disabled:pointer-events-none disabled:opacity-50",
+    variantClasses[variant],
+    sizeClasses[size],
+    className,
+  );
+}
+
 export function Button({
   className,
   variant = "default",
@@ -43,14 +64,7 @@ export function Button({
     <button
       data-slot="button"
       type={type}
-      className={cn(
-        "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors outline-none",
-        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        "disabled:pointer-events-none disabled:opacity-50",
-        variantClasses[variant],
-        sizeClasses[size],
-        className,
-      )}
+      className={buttonVariants({ variant, size, className })}
       {...props}
     />
   );

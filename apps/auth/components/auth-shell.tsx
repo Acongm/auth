@@ -1,5 +1,7 @@
 import { Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 type AuthShellProps = {
   title: string;
@@ -9,9 +11,12 @@ type AuthShellProps = {
 
 export function AuthShell({ title, description, children }: AuthShellProps) {
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-10">
+    <main className="relative flex min-h-screen items-center justify-center px-4 py-10">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle showLabel={false} className="rounded-full" />
+      </div>
       <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-xl border border-border bg-card/70 p-8 text-card-foreground shadow-sm backdrop-blur">
+        <Card className="bg-card/70 p-8 backdrop-blur">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
             Platform v2 SSO
           </p>
@@ -24,11 +29,9 @@ export function AuthShell({ title, description, children }: AuthShellProps) {
             <li>• `.acongm.com` 共享 Supabase Session Cookie</li>
             <li>• portal / chat / API 通过 JWT 统一鉴权</li>
           </ul>
-        </section>
+        </Card>
 
-        <section className="rounded-xl border border-border bg-card p-8 text-card-foreground shadow-2xl">
-          {children}
-        </section>
+        <Card className="p-8 shadow-2xl">{children}</Card>
       </div>
     </main>
   );
