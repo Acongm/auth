@@ -152,8 +152,12 @@ export function AccountProfileForm() {
             访客也有稳定的 Supabase 身份，但 Account Profile 只在永久账号下编辑。
           </p>
         </div>
-        <Button asChild>
-          <a href={getOAuthLoginUrl({ returnTo: window.location.href })}>登录或注册</a>
+        <Button
+          onClick={() => {
+            window.location.href = getOAuthLoginUrl({ returnTo: '/account' });
+          }}
+        >
+          登录或注册
         </Button>
       </Card>
     );
