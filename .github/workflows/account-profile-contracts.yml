@@ -1,0 +1,21 @@
+name: Account Profile Contracts
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [agent/account-profile-consumer]
+
+permissions:
+  contents: read
+
+jobs:
+  account-profile-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Account profile contracts
+        run: node --test tests/contracts/account-profile.test.mjs
