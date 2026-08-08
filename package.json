@@ -12,6 +12,10 @@
     "ui:add": "node scripts/ui-registry.mjs add core-ui",
     "ui:sync": "node scripts/ui-registry.mjs sync core-ui",
     "ui:diff": "node scripts/ui-registry.mjs diff core-ui",
+    "ui:view:forms": "node scripts/ui-registry.mjs view form-ui",
+    "ui:add:forms": "node scripts/ui-registry.mjs add form-ui",
+    "ui:sync:forms": "node scripts/ui-registry.mjs sync form-ui",
+    "ui:diff:forms": "node scripts/ui-registry.mjs diff form-ui",
     "ui:drift": "node scripts/check-ui-drift.mjs"
   },
   "engines": {
