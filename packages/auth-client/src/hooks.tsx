@@ -9,6 +9,7 @@ import {
   isAuthConfigured,
   signOut,
 } from './client';
+import { getUserInfo, type UserInfoView, type UserMe } from './profile';
 
 export function useSession() {
   const configured = isAuthConfigured();
@@ -57,6 +58,63 @@ export function useUser() {
     user: (session?.user ?? null) as User | null,
     loading,
     configured,
+  };
+}
+
+/**
+ * Loads server-side getUserInfo for login-state UI.
+ * Falls back to null on 401/network errors so buttons can keep session-based UI.
+ */
+export function useUserInfo(options?: { baseUrl?: string }) {
+  const { session, loading: sessionLoading, configured } = useSession();
+  const [userMe, setUserMe] = useState<UserMe | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const accessToken = session?.access_token ?? null;
+  const baseUrl = options?.baseUrl;
+
+  useEffect(() => {
+    if (!accessToken) {
+      setUserMe(null);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    void getUserInfo({
+      accessToken,
+      baseUrl,
+    })
+      .then((next) => {
+        if (cancelled) return;
+        setUserMe(next);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setUserMe(null);
+        setError(err instanceof Error ? err.message : 'Failed to load user info');
+        setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, baseUrl]);
+
+  const userInfo: UserInfoView | null = userMe?.userInfo ?? null;
+
+  return {
+    userMe,
+    userInfo,
+    loading: sessionLoading || loading,
+    error,
+    configured,
+    hasSession: Boolean(session),
   };
 }
 

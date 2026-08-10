@@ -18,4 +18,4 @@ jobs:
         with:
           node-version: 22
       - name: Account profile contracts
-        run: node --test tests/contracts/account-profile.test.mjs
+        run: node --test tests/contracts/account-profile.test.mjs tests/contracts/getuserinfo-auth-button.test.mjs
