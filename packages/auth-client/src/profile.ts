@@ -7,6 +7,25 @@ export type ApplicationProfile = {
   updatedAt: string;
 };
 
+/** UI-ready identity from GET /api/user/info (or /me). */
+export type UserInfoView = {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+  email: string | null;
+  accountLabel: string;
+  role: string;
+  tier: string;
+  isAnonymous: boolean;
+  source: 'profile' | 'auth' | 'fallback' | string;
+};
+
+export type UserSettingsView = {
+  language: string;
+  theme: 'system' | 'light' | 'dark' | string;
+  preferences: Record<string, unknown>;
+};
+
 export type UserMe = {
   id: string;
   email?: string | null;
@@ -15,6 +34,8 @@ export type UserMe = {
   tier: string;
   isAnonymous: boolean;
   profile: ApplicationProfile | null;
+  userInfo: UserInfoView;
+  settings: UserSettingsView;
 };
 
 export type UpdateApplicationProfile = {
@@ -37,6 +58,10 @@ export class UserApiError extends Error {
 
 const DEFAULT_USER_API = '/api/user';
 
+function asString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
 function normalizeProfile(raw: unknown): ApplicationProfile | null {
   if (!raw || typeof raw !== 'object') return null;
   const row = raw as Record<string, unknown>;
@@ -44,14 +69,113 @@ function normalizeProfile(raw: unknown): ApplicationProfile | null {
   return {
     id: row.id,
     displayName:
-      typeof row.display_name === 'string' ? row.display_name : null,
-    avatarUrl: typeof row.avatar_url === 'string' ? row.avatar_url : null,
+      typeof row.display_name === 'string'
+        ? row.display_name
+        : typeof row.displayName === 'string'
+          ? row.displayName
+          : null,
+    avatarUrl:
+      typeof row.avatar_url === 'string'
+        ? row.avatar_url
+        : typeof row.avatarUrl === 'string'
+          ? row.avatarUrl
+          : null,
     preferences:
       row.preferences && typeof row.preferences === 'object'
         ? (row.preferences as Record<string, unknown>)
         : {},
-    createdAt: typeof row.created_at === 'string' ? row.created_at : '',
-    updatedAt: typeof row.updated_at === 'string' ? row.updated_at : '',
+    createdAt:
+      typeof row.created_at === 'string'
+        ? row.created_at
+        : typeof row.createdAt === 'string'
+          ? row.createdAt
+          : '',
+    updatedAt:
+      typeof row.updated_at === 'string'
+        ? row.updated_at
+        : typeof row.updatedAt === 'string'
+          ? row.updatedAt
+          : '',
+  };
+}
+
+function fallbackUserInfo(body: Record<string, unknown>): UserInfoView {
+  const profile = normalizeProfile(body.profile);
+  const email = asString(body.email);
+  const name = asString(body.name);
+  const displayName =
+    profile?.displayName ||
+    name ||
+    (email?.includes('@') ? email.split('@')[0] : email) ||
+    (body.isAnonymous === true ? '访客' : '用户');
+  const avatarUrl = profile?.avatarUrl ?? null;
+  return {
+    id: String(body.id || ''),
+    displayName,
+    avatarUrl,
+    email,
+    accountLabel: email || displayName,
+    role: typeof body.role === 'string' ? body.role : 'anonymous',
+    tier: typeof body.tier === 'string' ? body.tier : 'anon',
+    isAnonymous: body.isAnonymous === true,
+    source: profile?.displayName || profile?.avatarUrl ? 'profile' : 'fallback',
+  };
+}
+
+function normalizeUserInfo(raw: unknown, body: Record<string, unknown>): UserInfoView {
+  if (raw && typeof raw === 'object') {
+    const row = raw as Record<string, unknown>;
+    const displayName = asString(row.displayName);
+    if (displayName) {
+      return {
+        id: String(row.id || body.id || ''),
+        displayName,
+        avatarUrl: asString(row.avatarUrl),
+        email: asString(row.email) ?? asString(body.email),
+        accountLabel:
+          asString(row.accountLabel) ||
+          asString(row.email) ||
+          displayName,
+        role: typeof row.role === 'string' ? row.role : String(body.role || 'anonymous'),
+        tier: typeof row.tier === 'string' ? row.tier : String(body.tier || 'anon'),
+        isAnonymous: row.isAnonymous === true || body.isAnonymous === true,
+        source: typeof row.source === 'string' ? row.source : 'profile',
+      };
+    }
+  }
+  return fallbackUserInfo(body);
+}
+
+function normalizeSettings(raw: unknown): UserSettingsView {
+  if (raw && typeof raw === 'object') {
+    const row = raw as Record<string, unknown>;
+    const theme = asString(row.theme);
+    return {
+      language: asString(row.language) || 'zh-CN',
+      theme:
+        theme === 'light' || theme === 'dark' || theme === 'system'
+          ? theme
+          : 'system',
+      preferences:
+        row.preferences && typeof row.preferences === 'object'
+          ? (row.preferences as Record<string, unknown>)
+          : {},
+    };
+  }
+  return { language: 'zh-CN', theme: 'system', preferences: {} };
+}
+
+function normalizeUserMe(body: Record<string, unknown>): UserMe {
+  return {
+    id: String(body.id || ''),
+    email: typeof body.email === 'string' ? body.email : null,
+    name: typeof body.name === 'string' ? body.name : null,
+    role: typeof body.role === 'string' ? body.role : 'anonymous',
+    tier: typeof body.tier === 'string' ? body.tier : 'anon',
+    isAnonymous: body.isAnonymous === true,
+    profile: normalizeProfile(body.profile),
+    userInfo: normalizeUserInfo(body.userInfo, body),
+    settings: normalizeSettings(body.settings),
   };
 }
 
@@ -82,16 +206,21 @@ export async function getUserMe(options: {
       Accept: 'application/json',
     },
   });
-  const body = await readJson(response);
-  return {
-    id: String(body.id || ''),
-    email: typeof body.email === 'string' ? body.email : null,
-    name: typeof body.name === 'string' ? body.name : null,
-    role: typeof body.role === 'string' ? body.role : 'anonymous',
-    tier: typeof body.tier === 'string' ? body.tier : 'anon',
-    isAnonymous: body.isAnonymous === true,
-    profile: normalizeProfile(body.profile),
-  };
+  return normalizeUserMe(await readJson(response));
+}
+
+/** Explicit getUserInfo — same payload as /me, preferred for login-state UI. */
+export async function getUserInfo(options: {
+  accessToken: string;
+  baseUrl?: string;
+}): Promise<UserMe> {
+  const response = await fetch(`${options.baseUrl || DEFAULT_USER_API}/info`, {
+    headers: {
+      Authorization: `Bearer ${options.accessToken}`,
+      Accept: 'application/json',
+    },
+  });
+  return normalizeUserMe(await readJson(response));
 }
 
 export async function updateUserProfile(
