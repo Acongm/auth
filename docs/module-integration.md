@@ -29,13 +29,16 @@
 
 ## 推荐接入方式
 
-### 1. 顶栏 / 侧栏账号态（只读）
+### 1. 顶栏 / 侧栏账号态（只读 + 用户菜单）
 
 ```tsx
 import { AuthAccountButton } from '@acongm/auth-client';
 
-<AuthAccountButton variant="nav" />
+<AuthAccountButton variant="nav" menu />
 ```
+
+登录后菜单含：**账号**、**设置**（`auth.acongm.com/account#settings`）、**退出**。
+侧栏可传 `menuFooter` 嵌入本地 theme 切换。
 
 ### 2. Chat / Portal 嵌入面（需匿名 Supabase 身份）
 

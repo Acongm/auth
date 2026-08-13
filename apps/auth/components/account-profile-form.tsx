@@ -233,7 +233,7 @@ export function AccountProfileForm() {
         </Button>
       </Card>
 
-      <Card className="space-y-5 p-6">
+      <Card id="settings" className="space-y-5 p-6">
         <div>
           <h2 className="text-lg font-semibold">界面偏好</h2>
           <p className="text-sm text-muted-foreground">
