@@ -26,6 +26,15 @@ test('AuthAccountButton prefers server userInfo over session metadata', () => {
   assert.match(button, /userInfo\.avatarUrl/);
   assert.match(button, /isAnonymous/);
   assert.match(button, /\/account/);
+  assert.match(button, /loading && !session/);
+});
+
+test('useUserInfo does not block login-state UI while getUserInfo is in flight', () => {
+  assert.match(hooks, /loading: sessionLoading/);
+  assert.doesNotMatch(
+    hooks,
+    /sessionLoading \|\| \(Boolean\(session\) && loading\)/,
+  );
 });
 
 test('UserMe type includes userInfo and settings from API #62', () => {
