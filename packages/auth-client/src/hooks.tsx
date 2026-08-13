@@ -66,7 +66,7 @@ export function useUser() {
  * Falls back to null on 401/network errors so buttons can keep session-based UI.
  */
 export function useUserInfo(options?: { baseUrl?: string }) {
-  const { session, loading: sessionLoading, configured } = useSession();
+  const { session, loading: sessionLoading, client, configured } = useSession();
   const [userMe, setUserMe] = useState<UserMe | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,17 +109,23 @@ export function useUserInfo(options?: { baseUrl?: string }) {
   const userInfo: UserInfoView | null = userMe?.userInfo ?? null;
 
   return {
+    session,
+    client,
     userMe,
     userInfo,
-    loading: sessionLoading || loading,
+    loading: sessionLoading || (Boolean(session) && loading),
     error,
     configured,
     hasSession: Boolean(session),
   };
 }
 
-export function useAuthActions() {
-  const { client, configured } = useSession();
+export function useAuthActions(options?: {
+  client?: ReturnType<typeof createBrowserClient> | null;
+}) {
+  const sessionHook = useSession();
+  const client = options?.client ?? sessionHook.client;
+  const configured = sessionHook.configured;
 
   const login = useCallback((returnTo?: string) => {
     const href =

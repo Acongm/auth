@@ -1,7 +1,7 @@
 'use client';
 
 import { getAuthBaseUrl, isAnonymousSession } from './client';
-import { useAuthActions, useSession, useUserInfo } from './hooks';
+import { useAuthActions, useUserInfo } from './hooks';
 import type { UserInfoView } from './profile';
 
 export type AuthAccountButtonProps = {
@@ -16,7 +16,7 @@ export type AuthAccountButtonProps = {
   userApiBaseUrl?: string;
 };
 
-type AuthSession = NonNullable<ReturnType<typeof useSession>['session']>;
+type AuthSession = NonNullable<ReturnType<typeof useUserInfo>['session']>;
 
 function sessionFallbackLabel(session: AuthSession) {
   return (
@@ -158,12 +158,16 @@ export function AuthAccountButton({
   onSignedOut,
   userApiBaseUrl,
 }: AuthAccountButtonProps) {
-  const { session, loading: sessionLoading, configured } = useSession();
-  const { userInfo, loading: userInfoLoading } = useUserInfo({
+  const {
+    session,
+    client,
+    userInfo,
+    loading,
+    configured,
+  } = useUserInfo({
     baseUrl: userApiBaseUrl,
   });
-  const { login, logout } = useAuthActions();
-  const loading = sessionLoading || (Boolean(session) && userInfoLoading);
+  const { login, logout } = useAuthActions({ client });
 
   const handleLogout = () => {
     void (async () => {
