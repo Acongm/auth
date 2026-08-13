@@ -68,6 +68,7 @@ BFF 默认同源 `/api/user`；独立部署时在消费方 Next 路由代理到 
 |------|------|
 | `GET /api/user/info` | UI 展示用 `userInfo`（推荐） |
 | `GET /api/user/me` | 完整账号快照 |
+| `GET /api/user/profile` | `{ profile, userInfo }` |
 | `PATCH /api/user/profile` | 更新 profile，返回 refreshed `userInfo` |
 | `GET/PATCH /api/user/settings` | language / theme |
 
