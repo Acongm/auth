@@ -10,10 +10,13 @@ const index = read('packages/auth-client/src/index.ts');
 
 test('auth-client exports getUserInfo and useUserInfo for login-state UI', () => {
   assert.match(index, /getUserInfo/);
+  assert.match(index, /getUserProfile/);
   assert.match(index, /useUserInfo/);
   assert.match(index, /UserInfoView/);
   assert.match(profileClient, /export async function getUserInfo/);
+  assert.match(profileClient, /export async function getUserProfile/);
   assert.match(profileClient, /\/info/);
+  assert.match(profileClient, /8000/);
   assert.match(hooks, /export function useUserInfo/);
 });
 
