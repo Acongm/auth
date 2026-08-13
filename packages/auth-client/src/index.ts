@@ -1,6 +1,7 @@
 export {
   claimAnonymousThreads,
   createBrowserClient,
+  ensureAnonymousSession,
   getAuthBaseUrl,
   getOAuthLoginUrl,
   isAnonymousSession,
@@ -55,3 +56,4 @@ export {
   useUserInfo,
   useAuthActions,
 } from './hooks';
+export type { UseSessionOptions } from './hooks';

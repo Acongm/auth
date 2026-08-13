@@ -110,6 +110,21 @@ export function isAnonymousSession(
   return isAnonymousUser(session?.user);
 }
 
+/**
+ * Chat v2 requires a verified Supabase principal even for guests. Create a
+ * first-class anonymous Supabase identity instead of falling back to x-client-id.
+ */
+export async function ensureAnonymousSession(
+  client: ReturnType<typeof createBrowserClient>,
+): Promise<Session | null> {
+  const current = await client.auth.getSession();
+  if (current.data.session) return current.data.session;
+
+  const { data, error } = await client.auth.signInAnonymously();
+  if (error) return null;
+  return data.session;
+}
+
 export function isSocialAuthProvider(
   value: string,
 ): value is SocialAuthProvider {

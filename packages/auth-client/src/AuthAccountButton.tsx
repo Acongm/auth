@@ -14,6 +14,8 @@ export type AuthAccountButtonProps = {
   onSignedOut?: () => void;
   /** Override User API base (defaults to same-origin /api/user) */
   userApiBaseUrl?: string;
+  /** Chat/Portal embedded surfaces: bootstrap Supabase anonymous session. */
+  ensureAnonymous?: boolean;
 };
 
 type AuthSession = NonNullable<ReturnType<typeof useUserInfo>['session']>;
@@ -157,6 +159,7 @@ export function AuthAccountButton({
   variant = 'nav',
   onSignedOut,
   userApiBaseUrl,
+  ensureAnonymous,
 }: AuthAccountButtonProps) {
   const {
     session,
@@ -166,6 +169,7 @@ export function AuthAccountButton({
     configured,
   } = useUserInfo({
     baseUrl: userApiBaseUrl,
+    ensureAnonymous,
   });
   const { login, logout } = useAuthActions({ client });
 

@@ -15,6 +15,6 @@
 
 ## 下一步（auth 仓）
 
-1. **#51** — 建立 auth-client 发布/同步机制，chat/portal 停止手工 copy
+1. **#51** — auth-client 唯一源：`ensureAnonymousSession` + `useSession({ ensureAnonymous })` 已入 auth main；`scripts/check-auth-client-drift.sh` 校验 chat/portal
 2. 配合 **chat#40** — session bootstrap 不阻塞 shell
 3. **#37** — Account browser smoke
