@@ -15,20 +15,30 @@ function typeBlock(source, typeName) {
   return match[1];
 }
 
-test('Account reads identity/profile from /api/user/me with the Supabase access token', () => {
-  assert.match(form, /fetch\('\/api\/user\/me'/);
-  assert.match(form, /Authorization: `Bearer \$\{accessToken\}`/);
-  assert.match(form, /next\.profile\?\.display_name/);
-  assert.match(form, /next\.profile\?\.avatar_url/);
+test('Account reads identity/profile via auth-client getUserMe', () => {
+  assert.match(form, /getUserMe/);
+  assert.match(form, /from '@acongm\/auth-client'/);
+  assert.match(form, /next\.profile\?\.displayName/);
+  assert.match(form, /next\.profile\?\.avatarUrl/);
   assert.match(form, /next\.profile\?\.preferences/);
+  assert.match(form, /next\.settings/);
+  assert.match(form, /me\?\.userInfo/);
 });
 
-test('Account writes only application profile fields to /api/user/profile', () => {
-  assert.match(form, /fetch\('\/api\/user\/profile'/);
+test('Account writes application profile via auth-client updateUserProfile', () => {
+  assert.match(form, /updateUserProfile/);
   assert.match(form, /displayName: displayName\.trim\(\) \|\| null/);
   assert.match(form, /avatarUrl: avatarUrl\.trim\(\) \|\| null/);
   assert.match(form, /preferences,/);
-  assert.doesNotMatch(form, /body: JSON\.stringify\([^)]*(userId|role|tier|email)/s);
+  assert.match(form, /result\.userInfo/);
+  assert.doesNotMatch(form, /fetch\('\/api\/user\/profile'/);
+});
+
+test('Account writes typed settings via auth-client updateUserSettings', () => {
+  assert.match(form, /updateUserSettings/);
+  assert.match(form, /language: language\.trim\(\)/);
+  assert.match(form, /theme/);
+  assert.match(form, /\/api\/user\/settings/);
 });
 
 test('identity fields are rendered read-only rather than editable inputs', () => {
@@ -58,4 +68,6 @@ test('shared profile patch type cannot expose identity/authorization fields', ()
   assert.match(writableProfile, /preferences\?: Record<string, unknown>/);
   assert.doesNotMatch(writableProfile, /(userId|email|role|tier)\??:/);
   assert.match(profileClient, /PROFILE_PATCH_EMPTY/);
+  assert.match(profileClient, /export async function updateUserSettings/);
+  assert.match(profileClient, /SettingsUpdateResult/);
 });
