@@ -18,7 +18,9 @@ test('auth-client can load browser-safe supabase config from API when env is mis
   assert.match(client, /https:\/\/api\.acongm\.com\/api\/auth\/public-config/);
   assert.match(client, /knownPublicConfigForHost/);
   assert.match(hooks, /await loadAuthPublicConfig\(\)/);
+  assert.match(hooks, /getAuthSession/);
   assert.match(index, /loadAuthPublicConfig/);
+  assert.match(index, /getAuthSession/);
 });
 
 test('missing anonymous session is not a hard error', () => {
