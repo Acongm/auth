@@ -145,6 +145,25 @@ export function LoginForm() {
     persistReturnTo(returnTo);
   }, [returnTo]);
 
+  useEffect(() => {
+    if (searchParams.get("mode") === "signin") {
+      return;
+    }
+
+    let cancelled = false;
+    const client = createBrowserClient();
+    void client.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled || !isAnonymousSession(session)) {
+        return;
+      }
+      setMode("signup");
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams]);
+
   const finishRedirect = (fallback = "https://www.acongm.com") => {
     window.location.assign(returnTo || fallback);
   };
