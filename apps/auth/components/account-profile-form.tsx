@@ -21,6 +21,15 @@ const THEME_OPTIONS = [
   { value: 'dark', label: '深色' },
 ] as const;
 
+const DEFAULT_PROMPT_MAX_LENGTH = 2000;
+
+function chatSettingsOf(settings: UserSettingsView) {
+  return {
+    defaultModel: settings.chat?.defaultModel ?? '',
+    defaultPrompt: settings.chat?.defaultPrompt ?? '',
+  };
+}
+
 export function AccountProfileForm() {
   const { session, loading } = useSession();
   const accessToken = session?.access_token ?? null;
@@ -30,6 +39,8 @@ export function AccountProfileForm() {
   const [preferencesText, setPreferencesText] = useState('{}');
   const [language, setLanguage] = useState('zh-CN');
   const [theme, setTheme] = useState<UserSettingsView['theme']>('system');
+  const [defaultModel, setDefaultModel] = useState('');
+  const [defaultPrompt, setDefaultPrompt] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -51,6 +62,8 @@ export function AccountProfileForm() {
         );
         setLanguage(next.settings.language);
         setTheme(next.settings.theme);
+        setDefaultModel(next.settings.chat?.defaultModel ?? '');
+        setDefaultPrompt(next.settings.chat?.defaultPrompt ?? '');
       })
       .catch((cause) => {
         if (!cancelled) {
@@ -127,8 +140,14 @@ export function AccountProfileForm() {
     setSaved(false);
     setError(null);
     try {
+      const trimmedModel = defaultModel.trim();
       const result = await updateUserSettings(
-        { language: language.trim(), theme },
+        {
+          language: language.trim(),
+          theme,
+          ...(trimmedModel ? { defaultModel: trimmedModel } : {}),
+          defaultPrompt: defaultPrompt.trim() ? defaultPrompt.trim() : null,
+        },
         { accessToken },
       );
       setMe((current) =>
@@ -142,6 +161,9 @@ export function AccountProfileForm() {
       );
       setLanguage(result.settings.language);
       setTheme(result.settings.theme);
+      const chat = chatSettingsOf(result.settings);
+      setDefaultModel(chat.defaultModel);
+      setDefaultPrompt(chat.defaultPrompt);
       setSaved(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '偏好设置保存失败。');
@@ -237,7 +259,7 @@ export function AccountProfileForm() {
         <div>
           <h2 className="text-lg font-semibold">界面偏好</h2>
           <p className="text-sm text-muted-foreground">
-            通过 /api/user/settings 写入 typed preferences（language / theme）。
+            通过 /api/user/settings 写入 language / theme / defaultModel / defaultPrompt。
           </p>
         </div>
 
@@ -261,6 +283,36 @@ export function AccountProfileForm() {
               </option>
             ))}
           </select>
+        </label>
+
+        <label className="block space-y-2 text-sm">
+          <span className="font-medium">默认模型</span>
+          <Input
+            id="account-default-model"
+            value={defaultModel}
+            onChange={(event) => setDefaultModel(event.target.value)}
+            maxLength={80}
+            placeholder="gpt-4.1-mini"
+          />
+          <span className="text-xs text-muted-foreground">
+            必须是服务端 allow-list 中的模型；留空则不改当前值。
+          </span>
+        </label>
+
+        <label className="block space-y-2 text-sm">
+          <span className="font-medium">默认 Prompt</span>
+          <textarea
+            id="account-default-prompt"
+            value={defaultPrompt}
+            onChange={(event) => setDefaultPrompt(event.target.value)}
+            maxLength={DEFAULT_PROMPT_MAX_LENGTH}
+            rows={4}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            placeholder="例如：回答尽量简洁。"
+          />
+          <span className="text-xs text-muted-foreground">
+            空则 reset 回平台默认。不会覆盖服务端 system policy。
+          </span>
         </label>
 
         <Button onClick={() => void saveSettings()} disabled={busy || !accessToken}>

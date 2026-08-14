@@ -41,6 +41,17 @@ test('Account writes typed settings via auth-client updateUserSettings', () => {
   assert.match(form, /\/api\/user\/settings/);
 });
 
+test('Account settings form saves defaultModel/defaultPrompt and treats empty prompt as reset', () => {
+  assert.match(form, /setDefaultModel/);
+  assert.match(form, /setDefaultPrompt/);
+  assert.match(form, /next\.settings\.chat/);
+  assert.match(form, /defaultModel\.trim\(\)/);
+  assert.match(form, /defaultPrompt: defaultPrompt\.trim\(\) \? defaultPrompt\.trim\(\) : null/);
+  assert.match(form, /id="account-default-model"/);
+  assert.match(form, /id="account-default-prompt"/);
+  assert.match(form, /空则 reset/);
+});
+
 test('identity fields are rendered read-only rather than editable inputs', () => {
   assert.match(form, /User ID/);
   assert.match(form, /Email/);
