@@ -71,3 +71,15 @@ test('shared profile patch type cannot expose identity/authorization fields', ()
   assert.match(profileClient, /export async function updateUserSettings/);
   assert.match(profileClient, /SettingsUpdateResult/);
 });
+
+test('auth-client settings contract accepts defaultModel/defaultPrompt and document fields', () => {
+  const writableSettings = typeBlock(profileClient, 'UpdateUserSettings');
+  assert.match(writableSettings, /defaultModel\?: string/);
+  assert.match(writableSettings, /defaultPrompt\?: string \| null/);
+  assert.match(profileClient, /schemaVersion\?: number/);
+  assert.match(profileClient, /defaults\?: Record<string, unknown>/);
+  assert.match(profileClient, /overrides\?: Record<string, unknown>/);
+  assert.match(profileClient, /effective\?: Record<string, unknown>/);
+  assert.match(profileClient, /body\.defaultModel = patch\.defaultModel/);
+  assert.match(profileClient, /body\.defaultPrompt = patch\.defaultPrompt/);
+});
