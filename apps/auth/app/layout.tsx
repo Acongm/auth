@@ -6,7 +6,10 @@ export const metadata: Metadata = {
   title: "Acongm Auth",
   description: "Platform v2 single sign-on hub for acongm.com",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
+    ],
   },
 };
 
