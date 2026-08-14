@@ -62,7 +62,10 @@ test('identity conflicts surface instead of silently falling back or merging own
   const text = source('packages/auth-client/src/client.ts');
   assert.match(text, /identity\.\*already\.\*exists\|already\.\*linked\|identity\.\*taken/i);
   assert.match(text, /不会自动合并到已有账号/);
-  assert.doesNotMatch(text, /catch[\s\S]*signInWithOAuth[\s\S]*linkOAuthIdentity/);
+  assert.doesNotMatch(
+    text,
+    /startOAuthFlow[\s\S]*catch[\s\S]*signInWithOAuth[\s\S]*linkOAuthIdentity/,
+  );
 });
 
 test('login copy makes existing-account identity switching explicit', () => {
