@@ -5,6 +5,9 @@ import { ACONGM_THEME_BOOT_SCRIPT } from "@/lib/theme";
 export const metadata: Metadata = {
   title: "Acongm Auth",
   description: "Platform v2 single sign-on hub for acongm.com",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
