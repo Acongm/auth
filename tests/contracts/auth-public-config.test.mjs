@@ -34,6 +34,27 @@ test('known acongm public config is host-scoped', () => {
   assert.match(fallback, /hostname\.endsWith\('\.acongm\.com'\)/);
 });
 
+test('acongm hosts use known public config before the network waterfall', () => {
+  const client = source('packages/auth-client/src/client.ts');
+  const loadFn = client.slice(
+    client.indexOf('export async function loadAuthPublicConfig'),
+  );
+  const knownIndex = loadFn.indexOf('knownPublicConfigForHost(currentHostname())');
+  const fetchCallIndex = loadFn.indexOf(
+    'publicConfigPromise = fetchAuthPublicConfig',
+  );
+  assert.ok(knownIndex > 0, 'known host config should be consulted');
+  assert.ok(
+    fetchCallIndex > knownIndex,
+    'network fetch must run after the known-host shortcut',
+  );
+  assert.match(client, /cache: 'force-cache'/);
+  assert.doesNotMatch(
+    client.slice(client.indexOf('async function fetchAuthPublicConfig')),
+    /cache: 'no-store'/,
+  );
+});
+
 test('auth public-config prefers local NEXT_PUBLIC supabase env over API proxy', () => {
   const route = source('apps/auth/app/api/auth/public-config/route.ts');
   assert.match(route, /getSupabasePublicEnv/);
