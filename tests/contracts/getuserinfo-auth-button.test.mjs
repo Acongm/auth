@@ -25,7 +25,7 @@ test('AuthAccountButton prefers server userInfo over session metadata', () => {
   assert.match(button, /userInfo\.displayName/);
   assert.match(button, /userInfo\.avatarUrl/);
   assert.match(button, /isAnonymous/);
-  assert.match(button, /\/account/);
+  assert.match(button, /AuthAccountMenu/);
   assert.match(button, /loading && !session/);
 });
 
