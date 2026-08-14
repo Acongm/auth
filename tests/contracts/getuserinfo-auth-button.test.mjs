@@ -31,6 +31,16 @@ test('AuthAccountButton prefers server userInfo over session metadata', () => {
   assert.match(button, /loading && !session/);
 });
 
+test('getUserInfo reuses the session snapshot instead of a second /info hop', () => {
+  assert.match(profileClient, /userMeFromAuthSession/);
+  assert.match(profileClient, /peekAuthSessionCache/);
+  assert.match(profileClient, /authSessionInFlight/);
+  assert.match(profileClient, /clearAuthSessionCache/);
+  assert.match(hooks, /getUserInfo\(\{/);
+  assert.match(hooks, /skipBootstrap: hasCallerSession/);
+  assert.match(hooks, /clearAuthSessionCache\(\)/);
+});
+
 test('useUserInfo does not block login-state UI while getUserInfo is in flight', () => {
   assert.match(hooks, /loading: sessionLoading/);
   assert.doesNotMatch(

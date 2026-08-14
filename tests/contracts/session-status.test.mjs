@@ -39,6 +39,12 @@ test('anonymous bootstrap is opt-in; Auth account pages do not auto-create guest
   assert.doesNotMatch(account, /ensureAnonymous:\s*true/);
 });
 
+test('useAuthActions skips a third session bootstrap when caller already has one', () => {
+  assert.match(hooks, /skipBootstrap\?: boolean/);
+  assert.match(hooks, /skipBootstrap: hasCallerSession/);
+  assert.match(hooks, /if \(skipBootstrap\)/);
+});
+
 test('signOut forwards Supabase local/global/others scope', () => {
   assert.match(client, /scope\?: 'local' \| 'global' \| 'others'/);
   assert.match(client, /client\.auth\.signOut\(/);
