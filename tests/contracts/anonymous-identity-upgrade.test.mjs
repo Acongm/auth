@@ -71,6 +71,25 @@ test('login copy makes existing-account identity switching explicit', () => {
   assert.match(form, /Google \/ GitHub 注册会绑定到当前匿名身份并保留 auth\.uid\(\)/);
 });
 
+test('consumer login CTA routes anonymous users into signup mode for OAuth linking', () => {
+  const client = source('packages/auth-client/src/client.ts');
+  const hooks = source('packages/auth-client/src/hooks.tsx');
+  const button = source('packages/auth-client/src/AuthAccountButton.tsx');
+
+  assert.match(client, /export function resolveOAuthLoginMode/);
+  assert.match(client, /isAnonymousSession\(session\) \? ['"]signup['"] : ['"]signin['"]/);
+  assert.match(hooks, /resolveOAuthLoginMode\(session\)/);
+  assert.match(hooks, /mode,/);
+  assert.match(button, /useAuthActions\(\{ client, session \}\)/);
+});
+
+test('login page defaults anonymous visitors to signup unless signin is explicit', () => {
+  const form = source('apps/auth/components/login-form.tsx');
+  assert.match(form, /searchParams\.get\(["']mode["']\) === ["']signin["']/);
+  assert.match(form, /isAnonymousSession\(session\)/);
+  assert.match(form, /setMode\(["']signup["']\)/);
+});
+
 test.todo('live Supabase project has Manual Linking enabled before rollout');
 test.todo('OAuth anonymous upgrade is verified to preserve the exact auth.uid end-to-end');
 test.todo('email/password anonymous upgrade has an explicit same-uid verification flow in Auth #27');
