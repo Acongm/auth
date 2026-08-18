@@ -67,7 +67,7 @@ test.describe('Platform v2 quality gate browser smoke (#37)', () => {
     await expect(page.getByText('已保存。')).toBeVisible();
 
     await page.getByLabel('Language').fill('en-US');
-    await page.locator('#account-default-model').fill('gpt-4.1-mini');
+    await page.locator('#account-default-model').fill('deepseek-v4-flash');
     await page.locator('#account-default-prompt').fill('回答尽量简洁。');
     await page.getByRole('button', { name: '添加技能' }).click();
     await page.getByLabel('技能名称').fill('code-review');
@@ -75,7 +75,7 @@ test.describe('Platform v2 quality gate browser smoke (#37)', () => {
     await page.getByRole('button', { name: '保存偏好' }).click();
     await expect(page.getByText('已保存。')).toBeVisible();
     await expect(page.getByLabel('Language')).toHaveValue('en-US');
-    await expect(page.locator('#account-default-model')).toHaveValue('gpt-4.1-mini');
+    await expect(page.locator('#account-default-model')).toHaveValue('deepseek-v4-flash');
     await expect(page.locator('#account-default-prompt')).toHaveValue('回答尽量简洁。');
     await expect(page.getByLabel('技能名称')).toHaveValue('code-review');
     await expect(page.getByLabel('技能内容')).toHaveValue('先核对测试再改代码。');

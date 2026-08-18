@@ -319,7 +319,7 @@ export function AccountProfileForm() {
             value={defaultModel}
             onChange={(event) => setDefaultModel(event.target.value)}
             maxLength={80}
-            placeholder="gpt-4.1-mini"
+            placeholder="deepseek-v4-flash"
           />
           <span className="text-xs text-muted-foreground">
             必须是服务端 allow-list 中的模型；留空则不改当前值。
