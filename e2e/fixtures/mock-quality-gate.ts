@@ -69,7 +69,7 @@ function buildUserMe(mode: MockSessionMode) {
     settings: {
       language: 'zh-CN',
       theme: 'system',
-      chat: { defaultModel: '', defaultPrompt: '' },
+      chat: { defaultModel: '', defaultPrompt: '', skills: [] },
       preferences: {},
     },
   };
@@ -182,20 +182,32 @@ function createHandlers(mode: MockSessionMode) {
         theme?: string;
         defaultModel?: string;
         defaultPrompt?: string | null;
+        skills?: Array<{
+          id: string;
+          name: string;
+          content: string;
+          enabled: boolean;
+        }> | null;
+      };
+
+      const nextSkills = requestBody.skills ?? me.settings.chat?.skills ?? [];
+      me.settings = {
+        ...me.settings,
+        language: requestBody.language ?? me.settings.language,
+        theme: requestBody.theme ?? me.settings.theme,
+        chat: {
+          defaultModel:
+            requestBody.defaultModel ?? me.settings.chat?.defaultModel ?? '',
+          defaultPrompt:
+            requestBody.defaultPrompt === null
+              ? ''
+              : requestBody.defaultPrompt ?? me.settings.chat?.defaultPrompt ?? '',
+          skills: requestBody.skills === null ? [] : nextSkills,
+        },
       };
 
       return json(route, 200, {
-        settings: {
-          language: requestBody.language ?? me.settings.language,
-          theme: requestBody.theme ?? me.settings.theme,
-          chat: {
-            defaultModel:
-              requestBody.defaultModel ?? me.settings.chat?.defaultModel ?? '',
-            defaultPrompt:
-              requestBody.defaultPrompt ?? me.settings.chat?.defaultPrompt ?? '',
-          },
-          preferences: me.settings.preferences,
-        },
+        settings: me.settings,
         userInfo: me.userInfo,
       });
     }

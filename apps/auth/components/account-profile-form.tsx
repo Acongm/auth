@@ -7,6 +7,7 @@ import {
   updateUserProfile,
   updateUserSettings,
   useSession,
+  type AgentSkill,
   type UserMe,
   type UserSettingsView,
 } from '@acongm/auth-client';
@@ -22,12 +23,33 @@ const THEME_OPTIONS = [
 ] as const;
 
 const DEFAULT_PROMPT_MAX_LENGTH = 2000;
+const AGENT_SKILLS_MAX_COUNT = 8;
 
 function chatSettingsOf(settings: UserSettingsView) {
   return {
     defaultModel: settings.chat?.defaultModel ?? '',
     defaultPrompt: settings.chat?.defaultPrompt ?? '',
+    skills: settings.chat?.skills ?? [],
   };
+}
+
+function createSkillDraft(): AgentSkill {
+  return {
+    id: `skill-${Date.now().toString(36)}`,
+    name: '',
+    content: '',
+    enabled: true,
+  };
+}
+
+function skillsForSave(skills: AgentSkill[]): AgentSkill[] {
+  return skills
+    .map((skill) => ({
+      ...skill,
+      name: skill.name.trim(),
+      content: skill.content.trim(),
+    }))
+    .filter((skill) => skill.name);
 }
 
 export function AccountProfileForm() {
@@ -41,6 +63,7 @@ export function AccountProfileForm() {
   const [theme, setTheme] = useState<UserSettingsView['theme']>('system');
   const [defaultModel, setDefaultModel] = useState('');
   const [defaultPrompt, setDefaultPrompt] = useState('');
+  const [skills, setSkills] = useState<AgentSkill[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -64,6 +87,7 @@ export function AccountProfileForm() {
         setTheme(next.settings.theme);
         setDefaultModel(next.settings.chat?.defaultModel ?? '');
         setDefaultPrompt(next.settings.chat?.defaultPrompt ?? '');
+        setSkills(next.settings.chat?.skills ?? []);
       })
       .catch((cause) => {
         if (!cancelled) {
@@ -141,12 +165,14 @@ export function AccountProfileForm() {
     setError(null);
     try {
       const trimmedModel = defaultModel.trim();
+      const nextSkills = skillsForSave(skills);
       const result = await updateUserSettings(
         {
           language: language.trim(),
           theme,
           ...(trimmedModel ? { defaultModel: trimmedModel } : {}),
           defaultPrompt: defaultPrompt.trim() ? defaultPrompt.trim() : null,
+          skills: nextSkills.length ? nextSkills : null,
         },
         { accessToken },
       );
@@ -164,6 +190,7 @@ export function AccountProfileForm() {
       const chat = chatSettingsOf(result.settings);
       setDefaultModel(chat.defaultModel);
       setDefaultPrompt(chat.defaultPrompt);
+      setSkills(chat.skills);
       setSaved(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '偏好设置保存失败。');
@@ -259,7 +286,7 @@ export function AccountProfileForm() {
         <div>
           <h2 className="text-lg font-semibold">界面偏好</h2>
           <p className="text-sm text-muted-foreground">
-            通过 /api/user/settings 写入 language / theme / defaultModel / defaultPrompt。
+            通过 /api/user/settings 写入 language / theme / defaultModel / defaultPrompt / skills。
           </p>
         </div>
 
@@ -300,7 +327,7 @@ export function AccountProfileForm() {
         </label>
 
         <label className="block space-y-2 text-sm">
-          <span className="font-medium">默认 Prompt</span>
+          <span className="font-medium">默认系统提示词</span>
           <textarea
             id="account-default-prompt"
             value={defaultPrompt}
@@ -315,6 +342,8 @@ export function AccountProfileForm() {
           </span>
         </label>
 
+        <AccountSkillsEditor skills={skills} onChange={setSkills} />
+
         <Button onClick={() => void saveSettings()} disabled={busy || !accessToken}>
           {busy ? '保存中…' : '保存偏好'}
         </Button>
@@ -322,6 +351,73 @@ export function AccountProfileForm() {
 
       {error ? <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert> : null}
       {saved ? <Alert><AlertDescription>已保存。</AlertDescription></Alert> : null}
+    </div>
+  );
+}
+
+type AccountSkillsEditorProps = {
+  skills: AgentSkill[];
+  onChange: (skills: AgentSkill[]) => void;
+};
+
+function AccountSkillsEditor({ skills, onChange }: AccountSkillsEditorProps) {
+  function updateSkill(id: string, patch: Partial<AgentSkill>) {
+    onChange(skills.map((skill) => (skill.id === id ? { ...skill, ...patch } : skill)));
+  }
+
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-medium">Agent Skills</span>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={skills.length >= AGENT_SKILLS_MAX_COUNT}
+          onClick={() => onChange([...skills, createSkillDraft()])}
+        >
+          添加技能
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        与 Agent 平台类似：每条技能有名称和指令正文，发送时作为用户偏好注入。
+      </p>
+      {skills.map((skill) => (
+        <div key={skill.id} className="space-y-2 rounded-md border border-input p-3">
+          <Input
+            aria-label="技能名称"
+            value={skill.name}
+            onChange={(event) => updateSkill(skill.id, { name: event.target.value })}
+            maxLength={80}
+            placeholder="例如：code-review"
+          />
+          <textarea
+            aria-label="技能内容"
+            value={skill.content}
+            onChange={(event) => updateSkill(skill.id, { content: event.target.value })}
+            maxLength={2000}
+            rows={3}
+            placeholder="技能指令…"
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+          <div className="flex items-center justify-between gap-2">
+            <label className="flex items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                checked={skill.enabled}
+                onChange={(event) => updateSkill(skill.id, { enabled: event.target.checked })}
+              />
+              启用
+            </label>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onChange(skills.filter((item) => item.id !== skill.id))}
+            >
+              删除
+            </Button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

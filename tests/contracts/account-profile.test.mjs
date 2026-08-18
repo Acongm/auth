@@ -50,6 +50,9 @@ test('Account settings form saves defaultModel/defaultPrompt and treats empty pr
   assert.match(form, /id="account-default-model"/);
   assert.match(form, /id="account-default-prompt"/);
   assert.match(form, /空则 reset/);
+  assert.match(form, /skills: nextSkills.length \? nextSkills : null/);
+  assert.match(form, /添加技能/);
+  assert.match(form, /默认系统提示词/);
 });
 
 test('identity fields are rendered read-only rather than editable inputs', () => {
@@ -87,10 +90,12 @@ test('auth-client settings contract accepts defaultModel/defaultPrompt and docum
   const writableSettings = typeBlock(profileClient, 'UpdateUserSettings');
   assert.match(writableSettings, /defaultModel\?: string/);
   assert.match(writableSettings, /defaultPrompt\?: string \| null/);
+  assert.match(writableSettings, /skills\?: AgentSkill\[\] \| null/);
   assert.match(profileClient, /schemaVersion\?: number/);
   assert.match(profileClient, /defaults\?: Record<string, unknown>/);
   assert.match(profileClient, /overrides\?: Record<string, unknown>/);
   assert.match(profileClient, /effective\?: Record<string, unknown>/);
   assert.match(profileClient, /body\.defaultModel = patch\.defaultModel/);
   assert.match(profileClient, /body\.defaultPrompt = patch\.defaultPrompt/);
+  assert.match(profileClient, /body\.skills = patch\.skills/);
 });
