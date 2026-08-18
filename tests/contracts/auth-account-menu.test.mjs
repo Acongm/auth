@@ -15,7 +15,7 @@ test('AuthAccountMenu exposes account, settings anchor, and logout', () => {
 
 test('AuthAccountButton can render dropdown user menu', () => {
   const button = read('packages/auth-client/src/AuthAccountButton.tsx');
-  assert.match(button, /menu\s*=\s*false/);
+  assert.match(button, /menu\?: boolean/);
   assert.match(button, /AuthAccountMenu/);
   assert.match(button, /menuFooter/);
 });

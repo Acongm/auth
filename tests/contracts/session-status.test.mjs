@@ -28,6 +28,7 @@ test('useSession exposes status and retry instead of forcing consumers to guess 
   assert.match(hooks, /const status = resolveAuthSessionStatus/);
   assert.match(hooks, /userId: session\?\.user\?\.id/);
   assert.match(hooks, /accessToken: session\?\.access_token/);
+  assert.match(hooks, /hasSession,/);
   assert.match(hooks, /isAnonymous,/);
   assert.match(hooks, /retry,/);
   assert.match(index, /resolveAuthSessionStatus/);
