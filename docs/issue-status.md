@@ -8,12 +8,13 @@
 |---|------|------|------|
 | **52** | getUserInfo 驱动登录态展示 | **应关闭 ✅** | main `210b0d8`；chat/portal 已同步 |
 | **51** | Auth Client 收口 | **源码完成 ✅** | status machine + scoped signOut；drift check 绿 |
-| **28** | Account Profile 消费者 | OPEN（smoke → #37） | Account 页已 auth-client 化 + settings |
+| **28** | Account Profile 消费者 | **mock smoke ✅** | Account 页已 auth-client 化；`e2e/quality-gate-smoke.spec.ts` 覆盖登录/资料/偏好 |
 | **50** | Auth 产品完善 | OPEN | 依赖 #37 live proof |
 | **48** | Anonymous Identity Upgrade | OPEN | OAuth link 代码在 #47，live E2E 待证 |
 | **47** | （PR 已合） | — | merged `cac0449` |
 
 ## 下一步（auth 仓）
 
-1. **#37** — Account 登录态 / settings browser smoke
-2. **#48** — 匿名 → OAuth 同 uid live E2E（需 Manual Linking）
+1. **#37** — Account mock browser smoke — ✅ `e2e/quality-gate-smoke.spec.ts`（登录 chrome / 访客态 / 资料+偏好保存）
+2. **#37** — 生产 JWT browser — 仍缺 Runtime Secret
+3. **#48** — 匿名 → OAuth 同 uid live E2E（需 Manual Linking）

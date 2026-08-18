@@ -30,6 +30,9 @@ jobs:
       - name: UI registry drift
         run: pnpm ui:drift
 
+      - name: Auth browser smoke contracts
+        run: node --test tests/contracts/auth-browser-smoke.test.mjs
+
       - name: Typecheck
         run: pnpm typecheck
 
