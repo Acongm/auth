@@ -70,6 +70,7 @@ test('User BFF forwards Authorization and fails safely on upstream outage', () =
   assert.match(bff, /https:\/\/api\.acongm\.com\/api\/user/);
   assert.match(bff, /'authorization'/);
   assert.match(bff, /USER_UPSTREAM_UNREACHABLE/);
+  assert.doesNotMatch(bff, /headers: upstream\.headers/);
 });
 
 test('shared profile patch type cannot expose identity/authorization fields', () => {

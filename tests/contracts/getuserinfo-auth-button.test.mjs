@@ -28,7 +28,17 @@ test('AuthAccountButton prefers server userInfo over session metadata', () => {
   assert.match(button, /userInfo\.avatarUrl/);
   assert.match(button, /isAnonymous/);
   assert.match(button, /AuthAccountMenu/);
-  assert.match(button, /loading && !session/);
+  assert.match(button, /loading && !hasSession/);
+});
+
+test('cookie session is treated as a real login for chrome and getUserInfo', () => {
+  assert.match(hooks, /cookieIdentityFromAuthSession/);
+  assert.match(hooks, /hasSession,/);
+  assert.match(hooks, /userInfoLoading: hasSession && loading/);
+  assert.doesNotMatch(hooks, /hasSession: Boolean\(session\)/);
+  assert.match(hooks, /accessToken: accessToken \?\? undefined/);
+  assert.match(button, /if \(!hasSession\)/);
+  assert.match(button, /userInfo\?\.displayName \?\? '已登录'/);
 });
 
 test('getUserInfo reuses the session snapshot instead of a second /info hop', () => {
