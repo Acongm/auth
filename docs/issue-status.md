@@ -16,5 +16,6 @@
 ## 下一步（auth 仓）
 
 1. **#37** — Account mock browser smoke — ✅ `e2e/quality-gate-smoke.spec.ts`（登录 chrome / 访客态 / 资料+偏好保存）
-2. **#37** — 生产 JWT browser — 仍缺 Runtime Secret
-3. **#48** — 匿名 → OAuth 同 uid live E2E（需 Manual Linking）
+2. **#37** live JWT browser — ✅ `pnpm test:e2e:live`（真实邮箱登录 + Account 身份/settings）
+3. **#37** — 生产 cookie / OAuth browser — 仍待 `*.acongm.com`
+4. **#48** — 匿名 → OAuth 同 uid live E2E（需 Manual Linking）
