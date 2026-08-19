@@ -16,7 +16,13 @@
     "ui:add:forms": "node scripts/ui-registry.mjs add form-ui",
     "ui:sync:forms": "node scripts/ui-registry.mjs sync form-ui",
     "ui:diff:forms": "node scripts/ui-registry.mjs diff form-ui",
-    "ui:drift": "node scripts/check-ui-drift.mjs"
+    "ui:drift": "node scripts/check-ui-drift.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:live": "playwright test --config=playwright.live.config.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
   },
   "engines": {
     "node": ">=20"
