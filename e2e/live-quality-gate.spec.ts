@@ -26,6 +26,10 @@ test.describe('Platform v2 live JWT browser smoke (#37)', () => {
       await expect(page.getByRole('heading', { name: '界面偏好' })).toBeVisible();
       await expect(page.locator('#account-default-model')).toBeVisible();
       await expect(page.getByRole('button', { name: '登录或注册' })).toHaveCount(0);
+      await page.screenshot({
+        path: '/opt/cursor/artifacts/auth_account_live_jwt.png',
+        animations: 'disabled',
+      });
     } finally {
       await live.cleanup();
     }

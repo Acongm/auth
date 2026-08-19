@@ -23,7 +23,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm --filter @acongm/auth-app dev',
+    command: 'pnpm --filter @acongm/config build && pnpm --filter @acongm/auth-app dev',
     url: 'http://127.0.0.1:3100',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

@@ -45,5 +45,9 @@ test.describe('Platform v2 auth quality gate browser smoke (#37)', () => {
     await page.locator('#account-default-prompt').fill('回答尽量简洁。');
     await page.getByRole('button', { name: '保存偏好' }).click();
     await expect(page.getByText('已保存。')).toBeVisible();
+    await page.screenshot({
+      path: '/opt/cursor/artifacts/auth_account_mock_settings.png',
+      animations: 'disabled',
+    });
   });
 });
