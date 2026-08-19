@@ -19,7 +19,8 @@
     "ui:drift": "node scripts/check-ui-drift.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:live": "playwright test --config=playwright.live.config.ts"
+    "test:e2e:live": "playwright test --config=playwright.live.config.ts",
+    "test:e2e:prod": "playwright test --config=playwright.prod.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1"

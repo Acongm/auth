@@ -113,6 +113,17 @@ export async function mintLiveUser() {
   };
 }
 
+function sessionCookieValue(session: LiveSession) {
+  return JSON.stringify({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+    expires_in: session.expires_in ?? 3600,
+    expires_at: session.expires_at,
+    token_type: session.token_type ?? 'bearer',
+    user: session.user,
+  });
+}
+
 export async function injectSupabaseSession(
   page: Page,
   session: LiveSession,
@@ -122,18 +133,34 @@ export async function injectSupabaseSession(
   await page.context().addCookies([
     {
       name: `sb-${PROJECT_REF}-auth-token`,
-      value: JSON.stringify({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-        expires_in: session.expires_in ?? 3600,
-        expires_at: session.expires_at,
-        token_type: session.token_type ?? 'bearer',
-        user: session.user,
-      }),
+      value: sessionCookieValue(session),
       domain: hostname,
       path: '/',
       httpOnly: false,
       secure: false,
+      sameSite: 'Lax',
+    },
+  ]);
+}
+
+export async function injectProductionCookies(page: Page, session: LiveSession) {
+  await page.context().addCookies([
+    {
+      name: `sb-${PROJECT_REF}-auth-token`,
+      value: sessionCookieValue(session),
+      domain: '.acongm.com',
+      path: '/',
+      httpOnly: false,
+      secure: true,
+      sameSite: 'Lax',
+    },
+    {
+      name: 'acongm_access_token',
+      value: session.access_token,
+      domain: '.acongm.com',
+      path: '/',
+      httpOnly: false,
+      secure: true,
       sameSite: 'Lax',
     },
   ]);
