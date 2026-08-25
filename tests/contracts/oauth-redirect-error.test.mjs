@@ -25,7 +25,18 @@ test('identity_already_exists switches the visible mode to sign-in', () => {
   const form = source('apps/auth/components/login-form.tsx');
   assert.match(form, /isIdentityAlreadyLinked/);
   assert.match(form, /setMode\(["']signin["']\)/);
+  assert.match(form, /resolveInitialLoginMode/);
   assert.match(form, /不会自动合并/);
+});
+
+test('identity conflict auto-retries OAuth with sign-in intent instead of linkIdentity', () => {
+  const form = source('apps/auth/components/login-form.tsx');
+  const helper = source('apps/auth/lib/oauth-redirect-error.ts');
+  assert.match(form, /runOAuth\(provider, ["']sign-in["']\)/);
+  assert.match(form, /正在切换到已有账号登录/);
+  assert.match(form, /signInRetryStartedRef/);
+  assert.match(helper, /PENDING_OAUTH_PROVIDER_KEY/);
+  assert.match(helper, /readOAuthProviderFromLocation/);
 });
 
 test('production OAuth callback stays on https even if the user opened http://auth.acongm.com', () => {
@@ -44,7 +55,7 @@ test('oauth-redirect-error parses the production Google identity_already_exists 
   assert.match(helper, /hash\.get\(['"]error_code['"]\) \|\| search\.get\(['"]error_code['"]\)/);
   assert.match(helper, /identity_already_exists\|already linked to another user/i);
   assert.match(helper, /不会自动合并到已有账号/);
-  assert.match(helper, /请切换到“登录”再进入已有账号/);
+  assert.match(helper, /已切换到「登录」/);
 });
 
 test('identity conflict login URL forces sign-in and drops auto-start provider', () => {
@@ -66,11 +77,15 @@ test('identity conflict login URL forces sign-in and drops auto-start provider',
 
 test('identity conflict does not flip anonymous visitors back to signup or auto-start OAuth', () => {
   const form = source('apps/auth/components/login-form.tsx');
+  const helper = source('apps/auth/lib/oauth-redirect-error.ts');
   assert.match(form, /identityConflictRef/);
   assert.match(form, /autoOauthStartedRef/);
   assert.match(form, /identityConflictRef\.current/);
   assert.match(form, /shouldUpgradeAuthHostToHttps/);
   assert.match(form, /nextLoginUrlAfterOAuthError/);
+  assert.match(form, /shouldDefaultAnonymousToSignup/);
+  assert.match(form, /window\.location\.search/);
+  assert.match(helper, /shouldDefaultAnonymousToSignup/);
   assert.match(form, /尚未登录到已有账号/);
   assert.doesNotMatch(
     form,

@@ -29,10 +29,9 @@ test('OAuth signin remains an explicit account switch even from an anonymous ses
 
 test('login form passes the visible signin/signup intent into OAuth start', () => {
   const form = source('apps/auth/components/login-form.tsx');
-  assert.match(
-    form,
-    /intent: mode === ["']signup["'] \? ["']sign-up["'] : ["']sign-in["']/,
-  );
+  assert.match(form, /async function runOAuth/);
+  assert.match(form, /intent: "sign-up" \| "sign-in"/);
+  assert.match(form, /mode === ["']signup["'] \? ["']sign-up["'] : ["']sign-in["']/);
   assert.doesNotMatch(form, /\bsignInWithOAuth\s*\(/);
 });
 
@@ -88,8 +87,9 @@ test('consumer login CTA routes anonymous users into signup mode for OAuth linki
 
 test('login page defaults anonymous visitors to signup unless signin is explicit', () => {
   const form = source('apps/auth/components/login-form.tsx');
-  assert.match(form, /searchParams\.get\(["']mode["']\) === ["']signin["']/);
-  assert.match(form, /isAnonymousSession\(session\)/);
+  const helper = source('apps/auth/lib/oauth-redirect-error.ts');
+  assert.match(helper, /resolveLoginModeFromSearch/);
+  assert.match(form, /shouldDefaultAnonymousToSignup/);
   assert.match(form, /setMode\(["']signup["']\)/);
 });
 

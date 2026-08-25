@@ -16,10 +16,17 @@ import { Card } from "@/components/ui/card";
 import { Field, FieldLabel, FieldSeparator } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
+  hasIdentityConflictSession,
   isIdentityAlreadyLinked,
+  markIdentityConflictSession,
   messageForOAuthRedirectError,
   nextLoginUrlAfterOAuthError,
+  readOAuthProviderFromLocation,
   readOAuthRedirectError,
+  readPendingOAuthProvider,
+  rememberPendingOAuthProvider,
+  resolveInitialLoginMode,
+  shouldDefaultAnonymousToSignup,
   shouldUpgradeAuthHostToHttps,
 } from "@/lib/oauth-redirect-error";
 import {
@@ -138,10 +145,13 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const returnTo = safeReturnTo(searchParams.get("return_to"));
   const requestedProvider = searchParams.get("provider");
-  const initialMode =
-    searchParams.get("mode") === "signup" ? "signup" : "signin";
 
-  const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [mode, setMode] = useState<AuthMode>(() => {
+    if (typeof window === "undefined") {
+      return searchParams.get("mode") === "signup" ? "signup" : "signin";
+    }
+    return resolveInitialLoginMode(window.location);
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState<BusyKind>(null);
@@ -150,10 +160,29 @@ export function LoginForm() {
   const [sessionKind, setSessionKind] = useState<
     "unknown" | "none" | "guest" | "signed-in"
   >("unknown");
-  const identityConflictRef = useRef(false);
+  const identityConflictRef = useRef(
+    typeof window !== "undefined" &&
+      (hasIdentityConflictSession() ||
+        isIdentityAlreadyLinked(readOAuthRedirectError(window.location))),
+  );
   const autoOauthStartedRef = useRef(false);
+  const signInRetryStartedRef = useRef(false);
 
   const callbackUrl = useMemo(() => resolveOAuthCallbackUrl(), []);
+
+  async function runOAuth(
+    provider: "github" | "google",
+    intent: "sign-up" | "sign-in",
+  ) {
+    rememberPendingOAuthProvider(provider);
+    persistReturnTo(returnTo);
+    const client = createBrowserClient();
+    await startOAuthFlow(client, {
+      provider,
+      redirectTo: callbackUrl,
+      intent,
+    });
+  }
 
   useEffect(() => {
     persistReturnTo(returnTo);
@@ -175,14 +204,31 @@ export function LoginForm() {
     setError(messageForOAuthRedirectError(redirectError));
     if (identityLinked) {
       identityConflictRef.current = true;
+      markIdentityConflictSession();
       setMode("signin");
     }
+
+    const provider =
+      readOAuthProviderFromLocation(window.location) ||
+      readPendingOAuthProvider();
     window.history.replaceState(
       null,
       "",
       nextLoginUrlAfterOAuthError(window.location.href, identityLinked),
     );
-  }, []);
+
+    if (!identityLinked || !provider || signInRetryStartedRef.current) {
+      return;
+    }
+
+    signInRetryStartedRef.current = true;
+    setBusy(provider);
+    setInfo("正在切换到已有账号登录…");
+    void runOAuth(provider, "sign-in").catch((cause) => {
+      setError(formatAuthError(cause));
+      setBusy(null);
+    });
+  }, [callbackUrl, returnTo]);
 
   useEffect(() => {
     let cancelled = false;
@@ -197,10 +243,12 @@ export function LoginForm() {
 
         const guest = isAnonymousSession(session);
         setSessionKind(guest ? "guest" : "signed-in");
-        if (searchParams.get("mode") === "signin") {
-          return;
-        }
-        if (guest && !identityConflictRef.current) {
+        if (
+          shouldDefaultAnonymousToSignup(window.location.search, {
+            guest,
+            identityConflict: identityConflictRef.current,
+          })
+        ) {
           setMode("signup");
         }
       });
@@ -211,7 +259,7 @@ export function LoginForm() {
     return () => {
       cancelled = true;
     };
-  }, [searchParams]);
+  }, []);
 
   const finishRedirect = (fallback = "https://www.acongm.com") => {
     window.location.assign(returnTo || fallback);
@@ -222,13 +270,7 @@ export function LoginForm() {
     setError(null);
     setInfo(null);
     try {
-      persistReturnTo(returnTo);
-      const client = createBrowserClient();
-      await startOAuthFlow(client, {
-        provider,
-        redirectTo: callbackUrl,
-        intent: mode === "signup" ? "sign-up" : "sign-in",
-      });
+      await runOAuth(provider, mode === "signup" ? "sign-up" : "sign-in");
     } catch (cause) {
       setError(formatAuthError(cause));
       setBusy(null);
@@ -239,7 +281,11 @@ export function LoginForm() {
     if (requestedProvider !== "github" && requestedProvider !== "google") {
       return;
     }
-    if (autoOauthStartedRef.current || identityConflictRef.current) {
+    if (
+      autoOauthStartedRef.current ||
+      identityConflictRef.current ||
+      signInRetryStartedRef.current
+    ) {
       return;
     }
     autoOauthStartedRef.current = true;
@@ -249,13 +295,10 @@ export function LoginForm() {
       setBusy(requestedProvider);
       setError(null);
       try {
-        persistReturnTo(returnTo);
-        const client = createBrowserClient();
-        await startOAuthFlow(client, {
-          provider: requestedProvider,
-          redirectTo: callbackUrl,
-          intent: mode === "signup" ? "sign-up" : "sign-in",
-        });
+        await runOAuth(
+          requestedProvider,
+          mode === "signup" ? "sign-up" : "sign-in",
+        );
       } catch (cause) {
         if (!cancelled) {
           setError(formatAuthError(cause));
