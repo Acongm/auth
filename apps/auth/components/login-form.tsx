@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   createBrowserClient,
@@ -15,6 +15,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldLabel, FieldSeparator } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  isIdentityAlreadyLinked,
+  messageForOAuthRedirectError,
+  nextLoginUrlAfterOAuthError,
+  readOAuthRedirectError,
+  shouldUpgradeAuthHostToHttps,
+} from "@/lib/oauth-redirect-error";
 import {
   AUTH_RETURN_TO_COOKIE,
   cn,
@@ -83,11 +90,13 @@ function resolveOAuthCallbackUrl(): string {
     return "https://auth.acongm.com/callback";
   }
   const host = window.location.hostname;
-  const origin =
-    host === "auth.acongm.com" || isLocalHostname(host)
-      ? window.location.origin
-      : "https://auth.acongm.com";
-  return new URL("/callback", origin).toString();
+  if (host === "auth.acongm.com") {
+    return "https://auth.acongm.com/callback";
+  }
+  if (isLocalHostname(host)) {
+    return new URL("/callback", window.location.origin).toString();
+  }
+  return "https://auth.acongm.com/callback";
 }
 
 function persistReturnTo(returnTo: string | null) {
@@ -138,6 +147,11 @@ export function LoginForm() {
   const [busy, setBusy] = useState<BusyKind>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [sessionKind, setSessionKind] = useState<
+    "unknown" | "none" | "guest" | "signed-in"
+  >("unknown");
+  const identityConflictRef = useRef(false);
+  const autoOauthStartedRef = useRef(false);
 
   const callbackUrl = useMemo(() => resolveOAuthCallbackUrl(), []);
 
@@ -146,18 +160,53 @@ export function LoginForm() {
   }, [returnTo]);
 
   useEffect(() => {
-    if (searchParams.get("mode") === "signin") {
+    if (typeof window === "undefined") return;
+    if (shouldUpgradeAuthHostToHttps(window.location)) {
+      const httpsUrl = new URL(window.location.href);
+      httpsUrl.protocol = "https:";
+      window.location.replace(httpsUrl.toString());
       return;
     }
 
+    const redirectError = readOAuthRedirectError(window.location);
+    if (!redirectError) return;
+
+    const identityLinked = isIdentityAlreadyLinked(redirectError);
+    setError(messageForOAuthRedirectError(redirectError));
+    if (identityLinked) {
+      identityConflictRef.current = true;
+      setMode("signin");
+    }
+    window.history.replaceState(
+      null,
+      "",
+      nextLoginUrlAfterOAuthError(window.location.href, identityLinked),
+    );
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
-    const client = createBrowserClient();
-    void client.auth.getSession().then(({ data: { session } }) => {
-      if (cancelled || !isAnonymousSession(session)) {
-        return;
-      }
-      setMode("signup");
-    });
+    try {
+      const client = createBrowserClient();
+      void client.auth.getSession().then(({ data: { session } }) => {
+        if (cancelled) return;
+        if (!session) {
+          setSessionKind("none");
+          return;
+        }
+
+        const guest = isAnonymousSession(session);
+        setSessionKind(guest ? "guest" : "signed-in");
+        if (searchParams.get("mode") === "signin") {
+          return;
+        }
+        if (guest && !identityConflictRef.current) {
+          setMode("signup");
+        }
+      });
+    } catch {
+      setSessionKind("none");
+    }
 
     return () => {
       cancelled = true;
@@ -190,6 +239,11 @@ export function LoginForm() {
     if (requestedProvider !== "github" && requestedProvider !== "google") {
       return;
     }
+    if (autoOauthStartedRef.current || identityConflictRef.current) {
+      return;
+    }
+    autoOauthStartedRef.current = true;
+
     let cancelled = false;
     void (async () => {
       setBusy(requestedProvider);
@@ -397,6 +451,15 @@ export function LoginForm() {
             登录后返回：
             <span className="mt-1 block break-all text-primary">{returnTo}</span>
           </Card>
+        ) : null}
+
+        {sessionKind === "guest" ? (
+          <p className="text-sm text-muted-foreground">
+            当前是访客会话，尚未登录到已有账号。
+          </p>
+        ) : null}
+        {sessionKind === "signed-in" ? (
+          <p className="text-sm text-muted-foreground">已登录到已有账号。</p>
         ) : null}
 
         {info ? (
