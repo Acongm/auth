@@ -18,7 +18,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'pnpm --filter @acongm/auth-app exec next dev --port 3110',
+    command: 'pnpm --filter @acongm/config build && pnpm --filter @acongm/auth-app exec next dev --port 3110',
     url: 'http://127.0.0.1:3110',
     reuseExistingServer: false,
     timeout: 180_000,

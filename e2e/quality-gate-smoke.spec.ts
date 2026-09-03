@@ -16,6 +16,10 @@ test.describe('Platform v2 auth quality gate browser smoke (#37)', () => {
     await expect(page.getByLabel('密码')).toBeVisible();
     await expect(page.getByRole('button', { name: '使用 GitHub 登录' })).toBeVisible();
     await expect(page.getByRole('button', { name: '使用 Google 登录' })).toBeVisible();
+    await page.screenshot({
+      path: '/opt/cursor/artifacts/auth-login-chrome.png',
+      animations: 'disabled',
+    });
   });
 
   test('anonymous account visitors cannot edit profile', async ({ page }) => {
@@ -27,6 +31,10 @@ test.describe('Platform v2 auth quality gate browser smoke (#37)', () => {
     });
     await expect(page.getByRole('button', { name: '登录或注册' })).toBeVisible();
     await expect(page.getByLabel('Display name')).toHaveCount(0);
+    await page.screenshot({
+      path: '/opt/cursor/artifacts/auth-account-anonymous.png',
+      animations: 'disabled',
+    });
   });
 
   test('authenticated account can load and save profile plus settings', async ({
@@ -45,5 +53,9 @@ test.describe('Platform v2 auth quality gate browser smoke (#37)', () => {
     await page.locator('#account-default-prompt').fill('回答尽量简洁。');
     await page.getByRole('button', { name: '保存偏好' }).click();
     await expect(page.locator('#account-default-prompt')).toHaveValue('回答尽量简洁。');
+    await page.screenshot({
+      path: '/opt/cursor/artifacts/auth-account-authenticated.png',
+      animations: 'disabled',
+    });
   });
 });
