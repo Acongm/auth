@@ -13,9 +13,10 @@ test('AuthAccountMenu exposes account, settings anchor, and logout', () => {
   assert.match(menu, /退出登录/);
 });
 
-test('AuthAccountButton can render dropdown user menu', () => {
+test('AuthAccountButton renders AuthAccountMenu for authenticated users', () => {
   const button = read('packages/auth-client/src/AuthAccountButton.tsx');
-  assert.match(button, /menu\s*=\s*false/);
   assert.match(button, /AuthAccountMenu/);
   assert.match(button, /menuFooter/);
+  assert.match(button, /onLogout=\{handleLogout\}/);
+  assert.doesNotMatch(button, /menu\s*=\s*\{?\s*false/);
 });

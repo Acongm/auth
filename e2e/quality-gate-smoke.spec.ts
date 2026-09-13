@@ -5,7 +5,7 @@ import {
 } from './fixtures/mock-quality-gate';
 
 test.describe('Platform v2 auth quality gate browser smoke (#37)', () => {
-  test('login chrome exposes email and OAuth providers', async ({ page }) => {
+  test('login chrome exposes email and OAuth providers', async ({ page }, testInfo) => {
     await installAuthQualityGateMocks(page, { kind: 'none' });
     await page.goto('/login');
 
@@ -17,12 +17,12 @@ test.describe('Platform v2 auth quality gate browser smoke (#37)', () => {
     await expect(page.getByRole('button', { name: '使用 GitHub 登录' })).toBeVisible();
     await expect(page.getByRole('button', { name: '使用 Google 登录' })).toBeVisible();
     await page.screenshot({
-      path: '/opt/cursor/artifacts/auth-login-chrome.png',
+      path: testInfo.outputPath('auth-login-chrome.png'),
       animations: 'disabled',
     });
   });
 
-  test('anonymous account visitors cannot edit profile', async ({ page }) => {
+  test('anonymous account visitors cannot edit profile', async ({ page }, testInfo) => {
     await installAuthQualityGateMocks(page, { kind: 'anonymous' });
     await page.goto('/account');
 
@@ -32,14 +32,14 @@ test.describe('Platform v2 auth quality gate browser smoke (#37)', () => {
     await expect(page.getByRole('button', { name: '登录或注册' })).toBeVisible();
     await expect(page.getByLabel('Display name')).toHaveCount(0);
     await page.screenshot({
-      path: '/opt/cursor/artifacts/auth-account-anonymous.png',
+      path: testInfo.outputPath('auth-account-anonymous.png'),
       animations: 'disabled',
     });
   });
 
   test('authenticated account can load and save profile plus settings', async ({
     page,
-  }) => {
+  }, testInfo) => {
     await installAuthQualityGateMocks(page, { kind: 'authenticated' });
     await page.goto('/account#settings');
 
@@ -52,9 +52,10 @@ test.describe('Platform v2 auth quality gate browser smoke (#37)', () => {
 
     await page.locator('#account-default-prompt').fill('回答尽量简洁。');
     await page.getByRole('button', { name: '保存偏好' }).click();
+    await expect(page.getByText('已保存。')).toBeVisible();
     await expect(page.locator('#account-default-prompt')).toHaveValue('回答尽量简洁。');
     await page.screenshot({
-      path: '/opt/cursor/artifacts/auth-account-authenticated.png',
+      path: testInfo.outputPath('auth-account-authenticated.png'),
       animations: 'disabled',
     });
   });

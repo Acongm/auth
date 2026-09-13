@@ -1,6 +1,24 @@
 import type { Page } from '@playwright/test';
 
-export const PROJECT_REF = 'ejprvntpxlyydkzsjqnv';
+const DEFAULT_PROJECT_REF = 'ejprvntpxlyydkzsjqnv';
+
+function resolveProjectRef(): string {
+  const explicit = process.env.ACONGM_SUPABASE_PROJECT_REF?.trim();
+  if (explicit) return explicit;
+
+  const supabaseUrl =
+    process.env.ACONGM_SUPABASE_URL?.trim() ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
+    process.env.SUPABASE_URL?.trim();
+  if (supabaseUrl) {
+    const match = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/);
+    if (match?.[1]) return match[1];
+  }
+
+  return DEFAULT_PROJECT_REF;
+}
+
+export const PROJECT_REF = resolveProjectRef();
 export const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`;
 export const LIVE_ENABLED = Boolean(process.env.ACONGM_SUPABASE_ACCESS_TOKEN?.trim());
 
@@ -84,6 +102,16 @@ export async function mintLiveUser() {
     throw new Error(`failed to create ephemeral user (${created.status})`);
   }
 
+  async function deleteUser() {
+    await request(`${SUPABASE_URL}/auth/v1/admin/users/${user.id}`, {
+      method: 'DELETE',
+      headers: {
+        apikey: serviceRole,
+        Authorization: `Bearer ${serviceRole}`,
+      },
+    });
+  }
+
   const login = await request(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: 'POST',
     headers: {
@@ -95,6 +123,7 @@ export async function mintLiveUser() {
   });
   const session = login.json as unknown as LiveSession;
   if (!session.access_token) {
+    await deleteUser();
     throw new Error(`password login failed (${login.status})`);
   }
 
@@ -102,13 +131,7 @@ export async function mintLiveUser() {
     user,
     session,
     async cleanup() {
-      await request(`${SUPABASE_URL}/auth/v1/admin/users/${user.id}`, {
-        method: 'DELETE',
-        headers: {
-          apikey: serviceRole,
-          Authorization: `Bearer ${serviceRole}`,
-        },
-      });
+      await deleteUser();
     },
   };
 }
