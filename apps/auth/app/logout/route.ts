@@ -2,7 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { CookieOptions } from "@supabase/ssr";
 import { createServerClient } from "@acongm/auth-client/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
-import { getDefaultReturnTo } from "@/lib/supabase/server";
+import {
+  getAllowedReturnHosts,
+  getDefaultReturnTo,
+} from "@/lib/supabase/server";
+import { sanitizeReturnTo } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   const response = NextResponse.redirect(
@@ -27,10 +31,11 @@ export async function GET(request: NextRequest) {
     await supabase.auth.signOut();
   }
 
-  const returnTo = request.nextUrl.searchParams.get("return_to");
-  if (returnTo) {
-    return NextResponse.redirect(returnTo);
-  }
+  const destination = sanitizeReturnTo(
+    request.nextUrl.searchParams.get("return_to"),
+    getDefaultReturnTo(),
+    getAllowedReturnHosts(),
+  );
 
-  return NextResponse.redirect(getDefaultReturnTo());
+  return NextResponse.redirect(destination);
 }

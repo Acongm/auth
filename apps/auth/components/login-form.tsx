@@ -32,6 +32,8 @@ import {
 import {
   AUTH_RETURN_TO_COOKIE,
   cn,
+  DEFAULT_ALLOWED_RETURN_HOSTS,
+  isAllowedReturnTo,
   isLocalHostname,
 } from "@/lib/utils";
 
@@ -79,13 +81,15 @@ function allowLocalReturnTo(): boolean {
 
 function safeReturnTo(value: string | null): string | null {
   if (!value) return null;
+  const allowedHosts = [...DEFAULT_ALLOWED_RETURN_HOSTS];
+  if (allowLocalReturnTo()) {
+    allowedHosts.push("localhost", "127.0.0.1");
+  }
+  if (!isAllowedReturnTo(value, allowedHosts)) {
+    return null;
+  }
   try {
-    const url = new URL(value);
-    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-    if (!allowLocalReturnTo() && isLocalHostname(url.hostname)) {
-      return null;
-    }
-    return url.toString();
+    return new URL(value).toString();
   } catch {
     return null;
   }
