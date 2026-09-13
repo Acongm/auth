@@ -3,6 +3,7 @@ import type { CookieOptions } from "@supabase/ssr";
 import { createServerClient } from "@acongm/auth-client/server";
 import { loadSiteConfig } from "@acongm/config";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
+import { DEFAULT_ALLOWED_RETURN_HOSTS } from "@/lib/return-to";
 
 export async function createAuthServerClient() {
   const supabaseEnv = getSupabasePublicEnv();
@@ -34,7 +35,7 @@ export async function createAuthServerClient() {
 
 export function getAllowedReturnHosts(): string[] {
   const config = loadSiteConfig();
-  const hosts = new Set<string>(["*.acongm.com", "acongm.com"]);
+  const hosts = new Set<string>(DEFAULT_ALLOWED_RETURN_HOSTS);
 
   // Localhost return_to only when developing auth locally — never in production SSO.
   if (process.env.NEXT_PUBLIC_AUTH_LOCAL === "1") {

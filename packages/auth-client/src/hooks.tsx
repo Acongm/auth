@@ -122,9 +122,10 @@ export function useSession(options?: UseSessionOptions) {
 
     const subscription = client
       ? client.auth.onAuthStateChange(
-          (event: AuthChangeEvent, nextSession: Session | null) => {
+          (_event: AuthChangeEvent, nextSession: Session | null) => {
             if (!mounted) return;
             generation += 1;
+            clearAuthSessionCache();
             if (nextSession) {
               setSession(nextSession);
               setError(null);
